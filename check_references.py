@@ -1,10 +1,8 @@
+import argparse
 import os
 import re
 import requests
 from re import Pattern
-
-# Define the root directory to scan
-ROOT_DIR = "./"
 
 # ================= REGEX PATTERNS FOR PARSING MARKDOWN FILES ==================
 
@@ -21,7 +19,7 @@ HTML_IMAGE_PATTERN = re.compile(r'<img\s+(?:[^>]*?\s+)?src=(["\'])(.*?)\1')  # <
 # ==============================================================================
 
 
-def get_markdown_files(root_dir):
+def get_markdown_files_from_dir(root_dir):
     """Traverse the directory to get all markdown files."""
     markdown_files = []
     for subdir, _, files in os.walk(root_dir):
@@ -29,6 +27,14 @@ def get_markdown_files(root_dir):
             if file.endswith(".md"):
                 markdown_files.append(os.path.join(subdir, file))
     return markdown_files
+
+
+def get_markdown_files_from_args(files, directories):
+    """Retrieve all markdown files specified by the user."""
+    markdown_files = set(files)
+    for directory in directories:
+        markdown_files.update(get_markdown_files_from_dir(directory))
+    return list(markdown_files)
 
 
 def parse_markdown_file(file_path):
@@ -116,24 +122,46 @@ def is_valid_markdown_reference(ref: str, base_path: str) -> bool:
     return True
 
 
-def print_green(text: str):
+def print_green(text: str) -> str:
     return f"\033[42m{text}\033[0m"
 
 
-def print_red(text: str):
+def print_red(text: str) -> str:
     return f"\033[41m{text}\033[0m"
 
 
 def main():
+    parser = argparse.ArgumentParser(description="PROVIDE TOOL DESCRIPTION HERE")
+    parser.add_argument("files", metavar="FILE", type=str, nargs="*", default=[], help="Markdown files to check")
+    parser.add_argument(
+        "-d",
+        "--directories",
+        metavar="DIRECTORY",
+        type=str,
+        nargs="*",
+        default=[],
+        help="Directories to traverse for Markdown files",
+    )
+    args = parser.parse_args()
+
+    if not args.files and not args.directories:
+        parser.print_help()
+        return
+
+    # Retrieve all markdown files specified by the user
+    markdown_files = get_markdown_files_from_args(args.files, args.directories)
+
+    if not markdown_files:
+        print("[!] No Markdown files specified or found.")
+        return
+
     broken_references = []  # Collect broken references with line numbers
 
-    print("[+] Searching for Markdown files in the given directory...")
-    all_files = get_markdown_files(ROOT_DIR)
-    print(f"Found {len(all_files)} Markdown files:")
-    for file in all_files:
+    print(f"[+] Found {len(markdown_files)} Markdown files:")
+    for file in markdown_files:
         print(f" - {file}")
 
-    for file in all_files:
+    for file in markdown_files:
         print(f"\n[+] Checking {file}...")
         base_path = os.path.dirname(file)
         references = parse_markdown_file(file)
