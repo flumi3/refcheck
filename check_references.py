@@ -23,7 +23,7 @@ HTML_IMAGE_PATTERN = re.compile(r'<img\s+(?:[^>]*?\s+)?src=(["\'])(.*?)\1')  # <
 # ==============================================================================
 
 
-def get_markdown_files_from_dir(root_dir: str) -> list[str]:
+def get_markdown_files_from_dir(root_dir: str) -> list:
     """Traverse the directory to get all markdown files."""
     print(os.path.abspath(root_dir))
     markdown_files = []
@@ -36,14 +36,14 @@ def get_markdown_files_from_dir(root_dir: str) -> list[str]:
 
     # Print all found markdown files
     if not markdown_files:
-        print(f"-> No Markdown files found {root_dir}")
+        print(f"-> No Markdown files found in {root_dir}")
     for file in markdown_files:
         print(f" - {file}")
 
     return markdown_files
 
 
-def get_markdown_files_from_args(files: list[str], directories: list[str]) -> list[str]:
+def get_markdown_files_from_args(files: list[str], directories: list[str]) -> list:
     """Retrieve all markdown files specified by the user."""
     markdown_files = set(files)  # remove duplicates
 
@@ -139,24 +139,24 @@ def is_valid_markdown_reference(ref: str, base_path: str) -> bool:
     return True
 
 
-def print_green_background(text: str) -> str:
-    return f"\033[42m{text}\033[0m"
+def print_green_background(text: str, no_color: bool = False) -> str:
+    return text if no_color else f"\033[42m{text}\033[0m"
 
 
-def print_red_background(text: str) -> str:
-    return f"\033[41m{text}\033[0m"
+def print_red_background(text: str, no_color: bool = False) -> str:
+    return text if no_color else f"\033[41m{text}\033[0m"
 
 
-def print_red(text: str) -> str:
-    return f"\033[31m{text}\033[0m"
+def print_red(text: str, no_color: bool = False) -> str:
+    return text if no_color else f"\033[31m{text}\033[0m"
 
 
-def print_green(text: str) -> str:
-    return f"\033[32m{text}\033[0m"
+def print_green(text: str, no_color: bool = False) -> str:
+    return text if no_color else f"\033[32m{text}\033[0m"
 
 
 def main():
-    parser = argparse.ArgumentParser(description="PROVIDE TOOL DESCRIPTION HERE")
+    parser = argparse.ArgumentParser(description="Tool to check links and local references in Markdown files.")
     parser.add_argument("files", metavar="FILE", type=str, nargs="*", default=[], help="Markdown files to check")
     parser.add_argument(
         "-d",
@@ -167,12 +167,15 @@ def main():
         default=[],
         help="Directories to traverse for Markdown files",
     )
+    parser.add_argument("-n", "--no-color", action="store_true", help="Turn off colored output")
     args = parser.parse_args()
 
     # Check if the user has provided any files or directories
     if not args.files and not args.directories:
         parser.print_help()
         return
+
+    no_color = args.no_color  # Get the no-color argument
 
     # Retrieve all markdown files specified by the user
     markdown_files = get_markdown_files_from_args(args.files, args.directories)
@@ -203,17 +206,17 @@ def main():
         # Validate remote references
         for url, line_num in remote_refs:
             if is_valid_remote_reference(url):
-                print(f"{file}:{line_num}: {url} - {print_green_background('OK')}")
+                print(f"{file}:{line_num}: {url} - {print_green_background('OK', no_color)}")
             else:
-                print(f"{file}:{line_num}: {url} - {print_red_background('BROKEN')}")
+                print(f"{file}:{line_num}: {url} - {print_red_background('BROKEN', no_color)}")
                 broken_references.append((file, url, line_num))
 
         # Validate local references
         for ref, line_num in local_refs:
             if (".md" in ref and is_valid_markdown_reference(ref, base_path)) or is_valid_local_reference(ref, base_path):  # fmt: skip
-                print(f"{file}:{line_num}: {ref} - {print_green_background('OK')}")
+                print(f"{file}:{line_num}: {ref} - {print_green_background('OK', no_color)}")
             else:
-                print(f"{file}:{line_num}: {ref} - {print_red_background('BROKEN')}")
+                print(f"{file}:{line_num}: {ref} - {print_red_background('BROKEN', no_color)}")
                 broken_references.append((file, ref, line_num))
 
     print("\nReference check complete.")
@@ -221,7 +224,7 @@ def main():
     # Summary of broken references
     print("\n============================|Summary|=============================")
     if broken_references:
-        print(print_red(f"[!] {len(broken_references)} broken references found:"))
+        print(print_red(f"[!] {len(broken_references)} broken references found:", no_color))
 
         # Sort broken references by line number
         broken_references = sorted(broken_references, key=lambda x: x[2])
@@ -230,7 +233,7 @@ def main():
             # Format output for easy navigation in VSCode
             print(f"{file}:{line_num}: {ref}")
     else:
-        print(print_green("\U0001F389 No broken references."))
+        print(print_green("\U0001F389 No broken references.", no_color))
     print("==================================================================")
 
 
