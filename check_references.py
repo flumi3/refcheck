@@ -19,7 +19,7 @@ HTML_IMAGE_PATTERN = re.compile(r'<img\s+(?:[^>]*?\s+)?src=(["\'])(.*?)\1')  # <
 # ==============================================================================
 
 
-def get_markdown_files_from_dir(root_dir):
+def get_markdown_files_from_dir(root_dir: str) -> list[str]:
     """Traverse the directory to get all markdown files."""
     markdown_files = []
     for subdir, _, files in os.walk(root_dir):
@@ -29,7 +29,7 @@ def get_markdown_files_from_dir(root_dir):
     return markdown_files
 
 
-def get_markdown_files_from_args(files, directories):
+def get_markdown_files_from_args(files: list[str], directories: list[str]) -> list[str]:
     """Retrieve all markdown files specified by the user."""
     markdown_files = set(files)
     for directory in directories:
@@ -37,13 +37,13 @@ def get_markdown_files_from_args(files, directories):
     return list(markdown_files)
 
 
-def parse_markdown_file(file_path):
+def parse_markdown_file(file_path: str) -> dict:
     """Parse a markdown file to extract references."""
     with open(file_path, "r", encoding="utf-8") as file:
         content = file.read()
 
     http_links = find_matches_with_line_numbers(HTTP_LINK_PATTERN, content, group=2)
-    inline_links = find_matches_with_line_numbers(INLINE_LINK_PATTERN, content)
+    inline_links = find_matches_with_line_numbers(INLINE_LINK_PATTERN, content, group=1)
     raw_links = find_matches_with_line_numbers(RAW_LINK_PATTERN, content, group=2)
     html_links = find_matches_with_line_numbers(HTML_LINK_PATTERN, content, group=2)
     file_refs = find_matches_with_line_numbers(FILE_PATTERN, content, group=2)
@@ -53,7 +53,7 @@ def parse_markdown_file(file_path):
         "http_links": http_links,
         "inline_links": inline_links,
         "raw_links": raw_links,
-        "html_links": html_links,  # returns list of (link, line_number) tuples
+        "html_links": html_links,
         "file_refs": file_refs,
         "html_images": html_images,
     }
@@ -75,7 +75,7 @@ def is_valid_remote_reference(url: str) -> bool:
         response = requests.head(url, timeout=5, verify=False)
         if response.status_code >= 400:
             return False
-    except Exception as e:
+    except Exception:
         return False
     else:
         return True
@@ -191,7 +191,7 @@ def main():
 
     # Summary of broken references
     if broken_references:
-        print("\n[!] Broken references found:")
+        print(f"\n[!] {len(broken_references)} broken references found:")
 
         # Sort broken references by line number
         broken_references = sorted(broken_references, key=lambda x: x[2])
