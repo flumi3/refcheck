@@ -1,4 +1,5 @@
 import os
+import sys
 from refcheck.parsers import parse_markdown_file
 from refcheck.validators import is_valid_remote_reference, is_valid_local_reference, is_valid_markdown_reference
 from refcheck.utils import (
@@ -11,14 +12,14 @@ from refcheck.utils import (
 )
 
 
-def main():
+def main() -> bool:
     parser = setup_arg_parser()
     args = parser.parse_args()
 
     # Check if the user has provided any files or directories
     if not args.files and not args.directories:
         parser.print_help()
-        return
+        return False
 
     no_color = args.no_color  # Get the no-color argument
 
@@ -26,7 +27,7 @@ def main():
     markdown_files = get_markdown_files_from_args(args.files, args.directories)
     if not markdown_files:
         print("[!] No Markdown files specified or found.")
-        return
+        return False
     else:
         print(f"[+] {len(markdown_files)} Markdown files to check.")
 
@@ -79,10 +80,15 @@ def main():
         for file, ref, line_num in broken_references:
             # Format output for easy navigation in VSCode
             print(f"{file}:{line_num}: {ref}")
+        return False
     else:
         print(print_green("\U0001F389 No broken references.", no_color))
+        return True
     print("==================================================================")
 
 
 if __name__ == "__main__":
-    main()
+    if main():
+        sys.exit(0)  # Success
+    else:
+        sys.exit(1)  # Failure
