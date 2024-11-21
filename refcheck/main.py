@@ -24,12 +24,14 @@ def main() -> bool:
     no_color = args.no_color  # Get the no-color argument
 
     # Retrieve all markdown files specified by the user
-    markdown_files = get_markdown_files_from_args(args.files, args.directories)
+    markdown_files = get_markdown_files_from_args(args.files, args.directories, args.exclude)
     if not markdown_files:
         print("[!] No Markdown files specified or found.")
         return False
     else:
         print(f"[+] {len(markdown_files)} Markdown files to check.")
+        for file in markdown_files:
+            print(f"- {file}")
 
     broken_references = []  # Collect broken references with line numbers
 

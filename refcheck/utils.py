@@ -2,32 +2,43 @@ import os
 import argparse
 
 
-def get_markdown_files_from_dir(root_dir: str) -> list:
+def get_markdown_files_from_dir(root_dir: str, exclude: list[str] = []) -> list:
     """Traverse the directory to get all markdown files."""
+    exclude_set = set(os.path.normpath(path) for path in exclude)
+    print(exclude_set)
     markdown_files = []
 
     # Walk through the directory to get all markdown files
     for subdir, _, files in os.walk(root_dir):
+        subdir_norm = os.path.normpath(subdir)
+        if any(subdir_norm.startswith(exclude_item) for exclude_item in exclude_set):
+            continue  # Skip excluded directories
+
         for file in files:
-            if file.endswith(".md"):
-                markdown_files.append(os.path.join(subdir, file))
+            file_path = os.path.join(subdir, file)
+            file_path_norm = os.path.normpath(file_path)
+            if file.endswith(".md") and file_path_norm not in exclude_set:
+                markdown_files.append(file_path_norm)
 
     return markdown_files
 
 
-def get_markdown_files_from_args(files: list[str], directories: list[str]) -> list:
+def get_markdown_files_from_args(files: list[str], directories: list[str], exclude: list[str] = []) -> list:
     """Retrieve all markdown files specified by the user."""
-    markdown_files = set(files)  # remove duplicates
+    exclude_set = set(os.path.normpath(path) for path in exclude)
+    markdown_files = set(
+        os.path.normpath(file) for file in files if os.path.normpath(file) not in exclude_set
+    )  # remove duplicates
 
     if directories:
         for directory in directories:
-            markdown_files.update(get_markdown_files_from_dir(directory))
+            markdown_files.update(get_markdown_files_from_dir(directory, exclude))
     return list(markdown_files)
 
 
 def setup_arg_parser():
     """Setup command line argument parser."""
-    parser = argparse.ArgumentParser(description="Tool to check links and local references in Markdown files.")
+    parser = argparse.ArgumentParser(description="Tool for validating references in Markdown files.")
     parser.add_argument("files", metavar="FILE", type=str, nargs="*", default=[], help="Markdown files to check")
     parser.add_argument(
         "-d",
@@ -37,6 +48,9 @@ def setup_arg_parser():
         nargs="*",
         default=[],
         help="Directories to traverse for Markdown files",
+    )
+    parser.add_argument(
+        "-e", "--exclude", metavar="EXCLUDE", type=str, nargs="*", default=[], help="Files or directories to exclude"
     )
     parser.add_argument("-n", "--no-color", action="store_true", help="Turn off colored output")
     return parser

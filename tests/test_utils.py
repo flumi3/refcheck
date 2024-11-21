@@ -28,6 +28,8 @@ def test_get_markdown_files_from_dir():
             (os.path.normpath("root/subdir1"), (), ("file3.md",)),
             (os.path.normpath("root/subdir2"), (), ("file4.txt", "file5.md")),
         ]
+
+        # Test case 1: No exclude
         result = get_markdown_files_from_dir("root")
         expected = [
             os.path.normpath("root/file1.md"),
@@ -36,16 +38,34 @@ def test_get_markdown_files_from_dir():
         ]
         assert result == expected
 
+        # Test case 2: Exclude directory root/subdir1
+        result = get_markdown_files_from_dir("root", exclude=["root/subdir1"])
+        expected = [os.path.normpath("root/file1.md"), os.path.normpath("root/subdir2/file5.md")]
+        assert result == expected
+
+        # Test case 3: Exclude file root/subdir1/file3.md
+        result = get_markdown_files_from_dir("root", exclude=["root/subdir1/file3.md"])
+        expected = [
+            os.path.normpath("root/file1.md"),
+            os.path.normpath("root/subdir2/file5.md"),
+        ]
+
 
 def test_get_markdown_files_from_args():
-    with patch("refcheck.utils.get_markdown_files_from_dir") as mock_get_md_files_from_dir:
-        # Mock get_markdown_files_from_dir to return the files in the directories
-        mock_get_md_files_from_dir.return_value = [
+    with patch("refcheck.utils.get_markdown_files_from_dir") as mock_get_markdown_files_from_dir:
+        # Mock get_markdown_files_from_dir function to return the following files:
+        # dir1
+        # └── file1.md
+        # dir2
+        # └── file2.md
+        mock_get_markdown_files_from_dir.return_value = [
             os.path.normpath("dir1/file1.md"),
             os.path.normpath("dir2/file2.md"),
         ]
+
         result = get_markdown_files_from_args(
-            [os.path.normpath("file3.md")], [os.path.normpath("dir1"), os.path.normpath("dir2")]
+            files=[os.path.normpath("file3.md")],
+            directories=[os.path.normpath("dir1"), os.path.normpath("dir2")],
         )
         expected = [os.path.normpath("file3.md"), os.path.normpath("dir1/file1.md"), os.path.normpath("dir2/file2.md")]
         assert set(result) == set(expected)
@@ -53,9 +73,10 @@ def test_get_markdown_files_from_args():
 
 def test_setup_arg_parser():
     parser = setup_arg_parser()
-    args = parser.parse_args(["file1.md", "file2.md", "-d", "dir1", "dir2", "-n"])
+    args = parser.parse_args(["file1.md", "file2.md", "-d", "dir1", "dir2", "-e", "exclude1", "exclude2", "-n"])
     assert args.files == ["file1.md", "file2.md"]
     assert args.directories == ["dir1", "dir2"]
+    assert args.exclude == ["exclude1", "exclude2"]
     assert args.no_color == True
 
 
