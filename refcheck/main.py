@@ -77,16 +77,20 @@ def main() -> bool:
         print(print_red(f"[!] {len(broken_references)} broken references found:", no_color))
 
         # Sort broken references by line number
-        broken_references = sorted(broken_references, key=lambda x: x[2])
+        broken_references = sorted(broken_references, key=lambda x: (x[0], x[2]))
 
         for file, ref, line_num in broken_references:
             # Format output for easy navigation in VSCode
             print(f"{file}:{line_num}: {ref}")
-        return False
     else:
         print(print_green("\U0001F389 No broken references.", no_color))
-        return True
     print("==================================================================")
+
+    # Return bool for exit code
+    if broken_references:
+        return False
+    else:
+        return True
 
 
 if __name__ == "__main__":
