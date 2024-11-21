@@ -1,11 +1,22 @@
 import os
 import argparse
 
+IGNORE_FILE = ".refcheckignore"
+
+
+def read_exclusions_from_file() -> list:
+    """Read exclusions from the .refcheckignore file."""
+    if not os.path.isfile(IGNORE_FILE):
+        return []
+
+    with open(IGNORE_FILE, "r", encoding="utf-8") as file:
+        exclusions = [line.strip() for line in file if line.strip()]
+    return exclusions
+
 
 def get_markdown_files_from_dir(root_dir: str, exclude: list[str] = []) -> list:
     """Traverse the directory to get all markdown files."""
     exclude_set = set(os.path.normpath(path) for path in exclude)
-    print(exclude_set)
     markdown_files = []
 
     # Walk through the directory to get all markdown files
@@ -25,10 +36,11 @@ def get_markdown_files_from_dir(root_dir: str, exclude: list[str] = []) -> list:
 
 def get_markdown_files_from_args(files: list[str], directories: list[str], exclude: list[str] = []) -> list:
     """Retrieve all markdown files specified by the user."""
+    # Read additional exclusions from the ignore file
+    exclude += read_exclusions_from_file()
+
     exclude_set = set(os.path.normpath(path) for path in exclude)
-    markdown_files = set(
-        os.path.normpath(file) for file in files if os.path.normpath(file) not in exclude_set
-    )  # remove duplicates
+    markdown_files = set(os.path.normpath(file) for file in files if os.path.normpath(file) not in exclude_set)
 
     if directories:
         for directory in directories:
