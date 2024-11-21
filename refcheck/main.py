@@ -1,5 +1,7 @@
 import os
 import sys
+import logging
+from refcheck.log_conf import setup_logging
 from refcheck.parsers import parse_markdown_file
 from refcheck.validators import is_valid_remote_reference, is_valid_local_reference, is_valid_markdown_reference
 from refcheck.utils import (
@@ -11,6 +13,8 @@ from refcheck.utils import (
     print_green,
 )
 
+logger = logging.getLogger()
+
 
 def main() -> bool:
     parser = setup_arg_parser()
@@ -20,6 +24,9 @@ def main() -> bool:
     if not args.files and not args.directories:
         parser.print_help()
         return False
+
+    # Setup logging based on the --verbose flag
+    setup_logging(verbose=args.verbose)
 
     no_color = args.no_color  # Get the no-color argument
 
@@ -52,12 +59,16 @@ def main() -> bool:
             continue
 
         # Validate remote references
-        for url, line_num in remote_refs:
-            if is_valid_remote_reference(url):
-                print(f"{file}:{line_num}: {url} - {print_green_background('OK', no_color)}")
-            else:
-                print(f"{file}:{line_num}: {url} - {print_red_background('BROKEN', no_color)}")
-                broken_references.append((file, url, line_num))
+        if args.check_remote:
+            logger.info("Checking remote references...")
+            for url, line_num in remote_refs:
+                if is_valid_remote_reference(url):
+                    print(f"{file}:{line_num}: {url} - {print_green_background('OK', no_color)}")
+                else:
+                    print(f"{file}:{line_num}: {url} - {print_red_background('BROKEN', no_color)}")
+                    broken_references.append((file, url, line_num))
+        else:
+            logger.warning("Skipping remote reference check. Enable with arg --check-remote.")
 
         # Validate local references
         for ref, line_num in local_refs:

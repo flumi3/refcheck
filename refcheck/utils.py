@@ -1,16 +1,34 @@
 import os
+import logging
 import argparse
 
+logger = logging.getLogger()
+
 IGNORE_FILE = ".refcheckignore"
+
+CHECK_IGNORE_DEFAULTS = [
+    ".git",
+    ".vscode",
+    ".idea",
+    "__pycache__",
+    "node_modules",
+    "venv",
+    ".venv",
+    ".pytest_cache",
+]
 
 
 def read_exclusions_from_file() -> list:
     """Read exclusions from the .refcheckignore file."""
     if not os.path.isfile(IGNORE_FILE):
-        return []
+        logger.warning(f"Could not find {IGNORE_FILE}. Using default exclusions.")
+        return CHECK_IGNORE_DEFAULTS
 
     with open(IGNORE_FILE, "r", encoding="utf-8") as file:
         exclusions = [line.strip() for line in file if line.strip()]
+        logger.info(f"Read {len(exclusions)} exclusions from {IGNORE_FILE}.")
+
+    logger.info(f"Exclusions: {exclusions}")
     return exclusions
 
 
@@ -64,7 +82,9 @@ def setup_arg_parser():
     parser.add_argument(
         "-e", "--exclude", metavar="EXCLUDE", type=str, nargs="*", default=[], help="Files or directories to exclude"
     )
+    parser.add_argument("--check-remote", action="store_true", help="Check remote references (HTTP/HTTPS links)")
     parser.add_argument("-n", "--no-color", action="store_true", help="Turn off colored output")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
     return parser
 
 
