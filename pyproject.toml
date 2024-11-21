@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "refcheck"
+version = "0.1.0"
+description = "Tool for validating references in Markdown files."
+authors = ["Sebastian Flum <sebastian.flum.dev@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+requests = "^2.32.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
