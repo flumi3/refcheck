@@ -9,7 +9,7 @@ HTML_LINK_PATTERN = re.compile(r"<a\s+(?:[^>]*?\s+)?href=([\"\'])(.*?)\1")  # <a
 
 # Local File References - scripts, markdown files, and local images
 FILE_PATTERN = re.compile(r"\[(.*?)\]\((?!http)(.*?)\)")  # all local files in []() and ![]()
-HTML_IMAGE_PATTERN = re.compile(r'<img\s+(?:[^>]*?\s+)?src=(["\'])(.*?)\1')  # <img src="image.png">
+HTML_IMAGE_PATTERN = re.compile(r"<img\s+(?:[^>]*?\s+)?src=([\"\'])(.*?)\1")  # <img src="image.png">
 
 
 def parse_markdown_file(file_path: str) -> dict:
