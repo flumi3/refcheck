@@ -26,15 +26,14 @@ def test_is_valid_remote_reference(mock_requests_head):
 
 @patch("os.path.exists")
 def test_is_valid_local_reference(mock_path_exists):
-    base_path = "/project"
 
     # Mock file exists
     mock_path_exists.return_value = True
-    assert file_exists("docs/user_guide.md", base_path)
+    assert file_exists("/project/docs/user_guide.md")
 
     # Mock file does not exist
     mock_path_exists.return_value = False
-    assert not file_exists("docs/user_guide.md", base_path)
+    assert not file_exists("/project/docs/user_guide.md")
 
 
 def test_normalize_header():

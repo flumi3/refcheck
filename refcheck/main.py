@@ -5,7 +5,7 @@ from typing import List, Tuple
 from dataclasses import dataclass
 
 from refcheck.log_conf import setup_logging
-from refcheck.parsers import parse_markdown_file, setup_arg_parser
+from refcheck.parsers import parse_markdown_file, init_arg_parser
 from refcheck.validators import is_valid_remote_reference, file_exists, is_valid_markdown_reference
 from refcheck.utils import (
     get_markdown_files_from_args,
@@ -88,7 +88,7 @@ class ReferenceChecker:
 
 
 def main() -> bool:
-    parser = setup_arg_parser()
+    parser = init_arg_parser()
     args = parser.parse_args()
 
     # Check if the user has provided any files or directories

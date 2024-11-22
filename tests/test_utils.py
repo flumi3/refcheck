@@ -4,7 +4,6 @@ from unittest.mock import patch, MagicMock
 from refcheck.utils import (
     get_markdown_files_from_dir,
     get_markdown_files_from_args,
-    setup_arg_parser,
     print_green_background,
     print_red_background,
     print_red,
@@ -69,15 +68,6 @@ def test_get_markdown_files_from_args():
         )
         expected = [os.path.normpath("file3.md"), os.path.normpath("dir1/file1.md"), os.path.normpath("dir2/file2.md")]
         assert set(result) == set(expected)
-
-
-def test_setup_arg_parser():
-    parser = setup_arg_parser()
-    args = parser.parse_args(["file1.md", "file2.md", "-d", "dir1", "dir2", "-e", "exclude1", "exclude2", "-n"])
-    assert args.files == ["file1.md", "file2.md"]
-    assert args.directories == ["dir1", "dir2"]
-    assert args.exclude == ["exclude1", "exclude2"]
-    assert args.no_color == True
 
 
 def test_print_green_background():

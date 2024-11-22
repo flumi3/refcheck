@@ -15,8 +15,15 @@ HTML_IMAGE_PATTERN = re.compile(r"<img\s+(?:[^>]*?\s+)?src=([\"\'])(.*?)\1")  # 
 
 def parse_markdown_file(file_path: str) -> dict:
     """Parse a markdown file to extract references."""
-    with open(file_path, "r", encoding="utf-8") as file:
-        content = file.read()
+    try:
+        with open(file_path, "r", encoding="utf-8") as file:
+            content = file.read()
+    except FileNotFoundError:
+        print(f"Error: The file {file_path} was not found.")
+        return {}
+    except IOError as e:
+        print(f"Error: An I/O error occurred while reading the file {file_path}: {e}")
+        return {}
 
     http_links = _find_matches_with_line_numbers(HTTP_LINK_PATTERN, content, group=2)
     inline_links = _find_matches_with_line_numbers(INLINE_LINK_PATTERN, content, group=1)
@@ -35,7 +42,7 @@ def parse_markdown_file(file_path: str) -> dict:
     }
 
 
-def setup_arg_parser():
+def init_arg_parser():
     """Setup command line argument parser."""
     parser = argparse.ArgumentParser(description="Tool for validating references in Markdown files.")
     parser.add_argument("files", metavar="FILE", type=str, nargs="*", default=[], help="Markdown files to check")
