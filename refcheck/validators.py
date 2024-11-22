@@ -24,6 +24,7 @@ def is_valid_remote_reference(url: str) -> bool:
 
 def file_exists(file_path: str) -> bool:
     """Check if local file exists."""
+    logger.info(f"Checking if file exists: {file_path}")
     exists = os.path.exists(file_path)
     if not exists:
         logger.warning(f"File does not exist: {file_path}")
@@ -63,18 +64,19 @@ def is_valid_markdown_reference(ref: str, file_path: str) -> bool:
 
     if ref.startswith("#"):
         logger.info("Reference is a header in the same Markdown file.")
-        referenced_file = file_path
         referenced_header = ref[1:]  # Remove leading `#`
+        target_path = file_path
     elif "#" in ref:
         logger.info("Reference is a header in another Markdown file.")
         referenced_file, referenced_header = ref.split("#", 1)
+        target_path = os.path.join(base_path, referenced_file)
     else:
         logger.info("Reference is to another Markdown file.")
         referenced_file = ref
         referenced_header = None
+        target_path = os.path.join(base_path, referenced_file)
 
     # Check if the referenced file exists
-    target_path = os.path.join(base_path, referenced_file)
     if not file_exists(target_path):
         logger.error(f"Referenced file does not exist: {target_path}")
         return False
