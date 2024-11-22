@@ -22,13 +22,13 @@ def read_exclusions_from_file() -> list:
     """Read exclusions from the .refcheckignore file."""
     if not os.path.isfile(IGNORE_FILE):
         logger.warning(f"Could not find {IGNORE_FILE}. Using default exclusions.")
-        return CHECK_IGNORE_DEFAULTS
+        exclusions = CHECK_IGNORE_DEFAULTS
+    else:
+        logger.info(f"Reading exclusions from {IGNORE_FILE}...")
+        with open(IGNORE_FILE, "r", encoding="utf-8") as file:
+            exclusions = [line.strip() for line in file if line.strip()]
 
-    with open(IGNORE_FILE, "r", encoding="utf-8") as file:
-        exclusions = [line.strip() for line in file if line.strip()]
-        logger.info(f"Read {len(exclusions)} exclusions from {IGNORE_FILE}.")
-
-    logger.info(f"Exclusions: {exclusions}")
+    logger.info(f"Will skip these files and directories: {exclusions}")
     return exclusions
 
 

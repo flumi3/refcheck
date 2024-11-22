@@ -1,9 +1,12 @@
 import os
 import re
+import logging
 import requests
 
 # Disable verify warnings for HTTPS requests
 requests.packages.urllib3.disable_warnings()  # type: ignore
+
+logger = logging.getLogger()
 
 
 def is_valid_remote_reference(url: str) -> bool:
@@ -18,10 +21,18 @@ def is_valid_remote_reference(url: str) -> bool:
         return True
 
 
-def is_valid_local_reference(ref: str, base_path: str) -> bool:
-    """Check if local references are reachable."""
-    asset_path = os.path.join(base_path, ref)
-    return os.path.exists(asset_path)
+def file_exists(file_path: str) -> bool:
+    """Check if local file exsists."""
+    return os.path.exists(file_path)
+
+
+def header_exists(file_path: str, header: str) -> bool:
+    """Check if Markdown header exists in the given file."""
+    with open(file_path, "r", encoding="utf-8") as file:
+        content = file.read()
+        normalized_header = normalize_header(header)
+        normalized_headers = [normalize_header(h) for h in re.findall(r"^#{1,6}\s+(.*)", content, re.MULTILINE)]
+        return normalized_header in normalized_headers
 
 
 def normalize_header(header: str) -> str:
@@ -29,25 +40,41 @@ def normalize_header(header: str) -> str:
     return header.strip().lower().replace(" ", "-")
 
 
-def is_valid_markdown_reference(ref: str, base_path: str) -> bool:
-    """Check if markdown references are reachable."""
-    if "#" in ref:
-        file_path, header_link = ref.split("#", 1)
-    else:
-        file_path = ref
-        header_link = None
+def is_valid_markdown_reference(ref: str, file_path: str) -> bool:
+    """Check if markdown references are reachable.
 
-    target_path = os.path.join(base_path, file_path)
-    if not os.path.exists(target_path):
+    Args:
+        ref: The reference to check, e.g. `file.md#header`, `#header`, `file.md`.
+        file_path: The path of the file where the reference was made in.
+
+    Returns:
+        bool: True if the reference is valid and reachable, False otherwise.
+    """
+    base_path = os.path.dirname(file_path)  # Directory of the file
+
+    if ref.startswith("#"):
+        logger.info("Reference is a header in the same Markdown file.")
+        referenced_file = None
+        referenced_header = ref[1:]  # Remove leading `#`
+        target_path = file_path
+    elif "#" in ref:
+        logger.info("Reference is a header in another Markdown file.")
+        referenced_file, referenced_header = ref.split("#", 1)
+        target_path = os.path.join(base_path, referenced_file)
+    else:
+        logger.info("Reference is to another Markdown file.")
+        referenced_file = ref
+        referenced_header = None
+        target_path = os.path.join(base_path, referenced_file)
+
+    # Check if the referenced file exists
+    if referenced_file and not file_exists(target_path):
+        logger.error(f"Referenced file does not exist: {target_path}")
         return False
 
-    if header_link:
-        with open(target_path, "r", encoding="utf-8") as file:
-            target_content = file.read()
-            normalized_header_link = normalize_header(header_link)
-            normalized_headers = re.findall(r"^#{1,6}\s+(.*)", target_content, re.MULTILINE)
-            normalized_headers = [normalize_header(header) for header in normalized_headers]
-            if normalized_header_link not in normalized_headers:
-                return False
+    # Check if the referenced header exists
+    if referenced_header and not header_exists(target_path, referenced_header):
+        logger.error(f"Referenced header does not exist in {target_path}: {referenced_header}")
+        return False
 
     return True

@@ -3,7 +3,7 @@ import pytest
 from unittest.mock import patch, mock_open
 from refcheck.validators import (
     is_valid_remote_reference,
-    is_valid_local_reference,
+    file_exists,
     normalize_header,
     is_valid_markdown_reference,
 )
@@ -30,11 +30,11 @@ def test_is_valid_local_reference(mock_path_exists):
 
     # Mock file exists
     mock_path_exists.return_value = True
-    assert is_valid_local_reference("docs/user_guide.md", base_path)
+    assert file_exists("docs/user_guide.md", base_path)
 
     # Mock file does not exist
     mock_path_exists.return_value = False
-    assert not is_valid_local_reference("docs/user_guide.md", base_path)
+    assert not file_exists("docs/user_guide.md", base_path)
 
 
 def test_normalize_header():

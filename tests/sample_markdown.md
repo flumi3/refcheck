@@ -45,7 +45,7 @@ Here is a footnote reference[^1].
 
 - [Installation Instructions](other-directory/README.md#installation-instructions)
 - [Getting Started](/path/to/README.md#getting-started)
-- [Links with Headers](#markdown-links-with-headers)
+- [Reference to a header in the same file](#file-links)
 
 # HTML Images
 

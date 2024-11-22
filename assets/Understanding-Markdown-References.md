@@ -12,7 +12,7 @@ link text and parentheses for the URL.
 Here are two examples:
 
 - A link to [Google](https://www.google.com) using HTTPS.
-- A reference to [Google](http://www.google.com) using HTTP.
+- A reference to [Bing](https://www.bing.com) using HTTPS.
 
 ## Image References
 
@@ -29,7 +29,7 @@ project's directory structure:
 
 - A reference to a Python script: [Main Python Script](src/main.py)
 - A link to a user guide Markdown file: [User Guide](docs/user_guide.md)
-- An absolute path reference: [Good Documentation](/project/docs/good-doc.md)
+- An absolute path reference: [Good Documentation](docs/good_doc.md)
 
 ## Markdown Links with Headers
 
@@ -39,13 +39,14 @@ followed by the header text:
 - A link to installation instructions in another file: [Installation Instructions](other-directory/README.md#installation-instructions)
 - A getting-started guide link: [Getting Started](/path/to/README.md#getting-started)
 - A header link with spaces: [Markdown Links with Headers](#markdown-links-with-headers)
+- A header link in the same file: [Local File References](#local-file-references)
 
 ## HTML Links
 
 HTML tags can be used within Markdown files for additional formatting capabilities, including links:
 
-- HTML link using double quotes: <a href="http://example.com">Example Link</a>
-- HTML link using single quotes: <a href='http://example.com'>Another Example Link</a>
+- HTML link using double quotes: <a href="https://www.wikipedia.org">Wikipedia</a>
+- HTML link using single quotes: <a href='https://www.github.com'>GitHub</a>
 
 ## HTML Images
 
@@ -61,13 +62,13 @@ For including raw URLs in Markdown, you can simply enclose the URL in angle brac
 
 - Inline HTTP link: <http://example.com>
 - Inline HTTPS link: <https://example.com>
-- Inline link usage in a sentence: This <http://example.com> contains all necessary explanations.
+- Inline link usage in a sentence: This <https://www.example.com> contains all necessary explanations.
 
 ## Footnote Links
 
 Markdown also supports footnotes for references which can be declared at the bottom and used throughout the document:
 
-- Example reference: [1]: <http://example.com>
+- Example reference: [1]: <https://example.com>
 - In-text usage: [Example Link Text][1]
 
 ## Footnotes
@@ -76,14 +77,14 @@ Footnotes can be used to include additional information or references at the end
 
 Here is a footnote reference[^1].
 
-- [^1]: <http://example.com>
+- [^1]: <https://example.com>
 
 ## Raw Links
 
 Sometimes, you may have plain URLs in your text that are not part of a Markdown link syntax:
 
-- Direct link to a resource: http://example.com
-- Standalone raw link: http://example.com
+- Direct link to a resource: https://www.example.com
+- Standalone raw link: https://www.example.com
 
 ## Additional File Types
 
@@ -97,11 +98,11 @@ References can be nested within lists or blockquotes:
 
 - Nested within a list:
   - A reference to [OpenAI](https://www.openai.com)
-  - Another [example link](http://example.com)
+  - Another [example link](https://example.com)
 
 > Nested within a blockquote:
 >
-> - A reference to [example link](http://example.com)
+> - A reference to [example link](https://example.com)
 
 ## Links in Code Blocks
 
@@ -109,5 +110,4 @@ Code blocks often contain references that should not be checked:
 
 ```Markdown
 # Example Code Block
-[Link](http://example.com)
-```
+[Link](https://example.com)
