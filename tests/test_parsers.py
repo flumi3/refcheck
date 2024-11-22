@@ -2,7 +2,7 @@
 import pytest
 from refcheck.parsers import (
     parse_markdown_file,
-    find_matches_with_line_numbers,
+    _find_matches_with_line_numbers,
     HTTP_LINK_PATTERN,
     INLINE_LINK_PATTERN,
     RAW_LINK_PATTERN,
@@ -19,7 +19,7 @@ def sample_markdown():
 
 
 def test_http_links(sample_markdown):
-    http_links = find_matches_with_line_numbers(HTTP_LINK_PATTERN, sample_markdown, group=2)
+    http_links = _find_matches_with_line_numbers(HTTP_LINK_PATTERN, sample_markdown, group=2)
     expected = [
         ("https://www.openai.com", 3),
         ("http://www.openai.com", 4),
@@ -32,13 +32,13 @@ def test_http_links(sample_markdown):
 
 
 def test_inline_links(sample_markdown):
-    inline_links = find_matches_with_line_numbers(INLINE_LINK_PATTERN, sample_markdown, group=1)
+    inline_links = _find_matches_with_line_numbers(INLINE_LINK_PATTERN, sample_markdown, group=1)
     expected = [("http://example.com", 21), ("https://example.com", 22), ("http://example.com", 24)]
     assert inline_links == expected
 
 
 def test_raw_links(sample_markdown):
-    raw_links = find_matches_with_line_numbers(RAW_LINK_PATTERN, sample_markdown, group=2)
+    raw_links = _find_matches_with_line_numbers(RAW_LINK_PATTERN, sample_markdown, group=2)
     expected = [
         ("http://example.com", 28),
         ("http://example.com", 29),
@@ -48,13 +48,13 @@ def test_raw_links(sample_markdown):
 
 
 def test_html_links(sample_markdown):
-    html_links = find_matches_with_line_numbers(HTML_LINK_PATTERN, sample_markdown, group=2)
+    html_links = _find_matches_with_line_numbers(HTML_LINK_PATTERN, sample_markdown, group=2)
     expected = [("http://example.com", 34), ("http://example.com", 35)]
     assert html_links == expected
 
 
 def test_file_links(sample_markdown):
-    file_refs = find_matches_with_line_numbers(FILE_PATTERN, sample_markdown, group=2)
+    file_refs = _find_matches_with_line_numbers(FILE_PATTERN, sample_markdown, group=2)
     expected = [
         ("/img/image.png", 39),
         ("img.png", 40),
@@ -69,7 +69,7 @@ def test_file_links(sample_markdown):
 
 
 def test_html_images(sample_markdown):
-    html_images = find_matches_with_line_numbers(HTML_IMAGE_PATTERN, sample_markdown, group=2)
+    html_images = _find_matches_with_line_numbers(HTML_IMAGE_PATTERN, sample_markdown, group=2)
     expected = [("https://www.openai.com/logo.png", 52), ("/assets/img.png", 53), ("image.png", 54)]
     assert html_images == expected
 

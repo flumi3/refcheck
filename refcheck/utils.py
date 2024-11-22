@@ -1,6 +1,5 @@
 import os
 import logging
-import argparse
 
 logger = logging.getLogger()
 
@@ -18,7 +17,7 @@ CHECK_IGNORE_DEFAULTS = [
 ]
 
 
-def read_exclusions_from_file() -> list:
+def load_exclusion_patterns() -> list:
     """Read exclusions from the .refcheckignore file."""
     if not os.path.isfile(IGNORE_FILE):
         logger.warning(f"Could not find {IGNORE_FILE}. Using default exclusions.")
@@ -55,7 +54,7 @@ def get_markdown_files_from_dir(root_dir: str, exclude: list[str] = []) -> list:
 def get_markdown_files_from_args(files: list[str], directories: list[str], exclude: list[str] = []) -> list:
     """Retrieve all markdown files specified by the user."""
     # Read additional exclusions from the ignore file
-    exclude += read_exclusions_from_file()
+    exclude += load_exclusion_patterns()
 
     exclude_set = set(os.path.normpath(path) for path in exclude)
     markdown_files = set(os.path.normpath(file) for file in files if os.path.normpath(file) not in exclude_set)
@@ -64,28 +63,6 @@ def get_markdown_files_from_args(files: list[str], directories: list[str], exclu
         for directory in directories:
             markdown_files.update(get_markdown_files_from_dir(directory, exclude))
     return list(markdown_files)
-
-
-def setup_arg_parser():
-    """Setup command line argument parser."""
-    parser = argparse.ArgumentParser(description="Tool for validating references in Markdown files.")
-    parser.add_argument("files", metavar="FILE", type=str, nargs="*", default=[], help="Markdown files to check")
-    parser.add_argument(
-        "-d",
-        "--directories",
-        metavar="DIRECTORY",
-        type=str,
-        nargs="*",
-        default=[],
-        help="Directories to traverse for Markdown files",
-    )
-    parser.add_argument(
-        "-e", "--exclude", metavar="EXCLUDE", type=str, nargs="*", default=[], help="Files or directories to exclude"
-    )
-    parser.add_argument("--check-remote", action="store_true", help="Check remote references (HTTP/HTTPS links)")
-    parser.add_argument("-n", "--no-color", action="store_true", help="Turn off colored output")
-    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
-    return parser
 
 
 def print_green_background(text: str, no_color: bool = False) -> str:

@@ -1,4 +1,5 @@
 import re
+import argparse
 from re import Pattern
 
 # HTTP/HTTPS Links - inline, footnotes, and remote images
@@ -17,12 +18,12 @@ def parse_markdown_file(file_path: str) -> dict:
     with open(file_path, "r", encoding="utf-8") as file:
         content = file.read()
 
-    http_links = find_matches_with_line_numbers(HTTP_LINK_PATTERN, content, group=2)
-    inline_links = find_matches_with_line_numbers(INLINE_LINK_PATTERN, content, group=1)
-    raw_links = find_matches_with_line_numbers(RAW_LINK_PATTERN, content, group=2)
-    html_links = find_matches_with_line_numbers(HTML_LINK_PATTERN, content, group=2)
-    file_refs = find_matches_with_line_numbers(FILE_PATTERN, content, group=2)
-    html_images = find_matches_with_line_numbers(HTML_IMAGE_PATTERN, content, group=2)
+    http_links = _find_matches_with_line_numbers(HTTP_LINK_PATTERN, content, group=2)
+    inline_links = _find_matches_with_line_numbers(INLINE_LINK_PATTERN, content, group=1)
+    raw_links = _find_matches_with_line_numbers(RAW_LINK_PATTERN, content, group=2)
+    html_links = _find_matches_with_line_numbers(HTML_LINK_PATTERN, content, group=2)
+    file_refs = _find_matches_with_line_numbers(FILE_PATTERN, content, group=2)
+    html_images = _find_matches_with_line_numbers(HTML_IMAGE_PATTERN, content, group=2)
 
     return {
         "http_links": http_links,
@@ -34,7 +35,29 @@ def parse_markdown_file(file_path: str) -> dict:
     }
 
 
-def find_matches_with_line_numbers(pattern: Pattern[str], text: str, group: int = 0) -> list:
+def setup_arg_parser():
+    """Setup command line argument parser."""
+    parser = argparse.ArgumentParser(description="Tool for validating references in Markdown files.")
+    parser.add_argument("files", metavar="FILE", type=str, nargs="*", default=[], help="Markdown files to check")
+    parser.add_argument(
+        "-d",
+        "--directories",
+        metavar="DIRECTORY",
+        type=str,
+        nargs="*",
+        default=[],
+        help="Directories to traverse for Markdown files",
+    )
+    parser.add_argument(
+        "-e", "--exclude", metavar="EXCLUDE", type=str, nargs="*", default=[], help="Files or directories to exclude"
+    )
+    parser.add_argument("--check-remote", action="store_true", help="Check remote references (HTTP/HTTPS links)")
+    parser.add_argument("-n", "--no-color", action="store_true", help="Turn off colored output")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
+    return parser
+
+
+def _find_matches_with_line_numbers(pattern: Pattern[str], text: str, group: int = 0) -> list:
     """Find regex matches along with their line numbers."""
     matches_with_line_numbers = []
     for match in re.finditer(pattern, text):
