@@ -92,7 +92,7 @@ def main() -> bool:
     args = parser.parse_args()
 
     # Check if the user has provided any files or directories
-    if not args.files and not args.directories:
+    if not args.paths:
         parser.print_help()
         return False
 
@@ -100,7 +100,7 @@ def main() -> bool:
     no_color = args.no_color
 
     # Retrieve all markdown files specified by the user
-    markdown_files = get_markdown_files_from_args(args.files, args.directories, args.exclude)
+    markdown_files = get_markdown_files_from_args(args.paths, args.exclude)
     if not markdown_files:
         print("[!] No Markdown files specified or found.")
         return False

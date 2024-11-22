@@ -33,6 +33,7 @@ def load_exclusion_patterns() -> list:
 
 def get_markdown_files_from_dir(root_dir: str, exclude: list[str] = []) -> list:
     """Traverse the directory to get all markdown files."""
+    print(f"[+] Searching for markdown files in {os.path.abspath(root_dir)} ...")
     exclude_set = set(os.path.normpath(path) for path in exclude)
     markdown_files = []
 
@@ -51,17 +52,26 @@ def get_markdown_files_from_dir(root_dir: str, exclude: list[str] = []) -> list:
     return markdown_files
 
 
-def get_markdown_files_from_args(files: list[str], directories: list[str], exclude: list[str] = []) -> list:
+def get_markdown_files_from_args(paths: list[str], exclude: list[str] = []) -> list:
     """Retrieve all markdown files specified by the user."""
     # Read additional exclusions from the ignore file
     exclude += load_exclusion_patterns()
 
     exclude_set = set(os.path.normpath(path) for path in exclude)
-    markdown_files = set(os.path.normpath(file) for file in files if os.path.normpath(file) not in exclude_set)
+    markdown_files = set()
 
-    if directories:
-        for directory in directories:
-            markdown_files.update(get_markdown_files_from_dir(directory, exclude))
+    for path in paths:
+        norm_path = os.path.normpath(path)
+        if norm_path in exclude_set:
+            continue
+        if os.path.isdir(norm_path):
+            markdown_files.update(get_markdown_files_from_dir(norm_path, exclude))
+        elif os.path.isfile(norm_path):
+            if norm_path.endswith(".md"):
+                markdown_files.add(norm_path)
+        else:
+            print(f"[!] Warning: {path} is not a valid file or directory.")
+
     return list(markdown_files)
 
 

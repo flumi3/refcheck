@@ -101,9 +101,8 @@ def test_parse_markdown_file(tmp_path):
 # Tests for setting up argument parser
 def test_setup_arg_parser():
     parser = init_arg_parser()
-    args = parser.parse_args(["file1.md", "file2.md", "-d", "dir1", "dir2", "-e", "exclude1", "exclude2", "-n"])
-    assert args.files == ["file1.md", "file2.md"]
-    assert args.directories == ["dir1", "dir2"]
+    args = parser.parse_args(["file1.md", "file2.md", "dir1", "dir2", "-e", "exclude1", "exclude2", "-n"])
+    assert args.paths == ["file1.md", "file2.md", "dir1", "dir2"]
     assert args.exclude == ["exclude1", "exclude2"]
     assert args.no_color == True
 

@@ -42,28 +42,6 @@ def parse_markdown_file(file_path: str) -> dict:
     }
 
 
-def init_arg_parser():
-    """Setup command line argument parser."""
-    parser = argparse.ArgumentParser(description="Tool for validating references in Markdown files.")
-    parser.add_argument("files", metavar="FILE", type=str, nargs="*", default=[], help="Markdown files to check")
-    parser.add_argument(
-        "-d",
-        "--directories",
-        metavar="DIRECTORY",
-        type=str,
-        nargs="*",
-        default=[],
-        help="Directories to traverse for Markdown files",
-    )
-    parser.add_argument(
-        "-e", "--exclude", metavar="EXCLUDE", type=str, nargs="*", default=[], help="Files or directories to exclude"
-    )
-    parser.add_argument("--check-remote", action="store_true", help="Check remote references (HTTP/HTTPS links)")
-    parser.add_argument("-n", "--no-color", action="store_true", help="Turn off colored output")
-    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
-    return parser
-
-
 def _find_matches_with_line_numbers(pattern: Pattern[str], text: str, group: int = 0) -> list:
     """Find regex matches along with their line numbers."""
     matches_with_line_numbers = []
@@ -72,3 +50,55 @@ def _find_matches_with_line_numbers(pattern: Pattern[str], text: str, group: int
         line_number = text.count("\n", 0, start_pos) + 1
         matches_with_line_numbers.append((match.group(group), line_number))
     return matches_with_line_numbers
+
+
+# ============================== ARGUMENT PARSER ===============================
+
+
+class CustomFormatter(argparse.HelpFormatter):
+    def _format_action_invocation(self, action):
+        if not action.option_strings:
+            (metavar,) = self._metavar_formatter(action, action.dest)(1)
+            return metavar
+        else:
+            parts = []
+            # if the Optional doesn't take a value, format is:
+            #    -s, --long
+            if action.nargs == 0:
+                parts.extend(action.option_strings)
+
+            # if the Optional takes a value, format is:
+            #    -s ARGS, --long ARGS
+            # change to
+            #    -s, --long ARGS
+            else:
+                default = action.dest.upper()
+                args_string = self._format_args(action, default)
+                for option_string in action.option_strings:
+                    # parts.append('%s %s' % (option_string, args_string))
+                    parts.append("%s" % option_string)
+                parts[-1] += " %s" % args_string
+            return ", ".join(parts)
+
+
+def init_arg_parser():
+    """Setup command line argument parser."""
+    parser = argparse.ArgumentParser(
+        prog="refcheck", usage="refcheck [OPTIONS] [PATH ...]", formatter_class=CustomFormatter
+    )
+    parser.add_argument(
+        "paths",
+        metavar="PATH",
+        type=str,
+        nargs="*",
+        help="Markdown files or directories to check",
+    )
+    parser.add_argument(
+        "-e", "--exclude", metavar="", type=str, nargs="*", default=[], help="Files or directories to exclude"
+    )
+    parser.add_argument(
+        "-cm", "--check-remote", action="store_true", help="Check remote references (HTTP/HTTPS links)"
+    )
+    parser.add_argument("-n", "--no-color", action="store_true", help="Turn off colored output")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
+    return parser
