@@ -18,7 +18,7 @@ def setup_logging(verbose=False):
         console_handler.setLevel(logging.INFO)
         console_formatter = logging.Formatter("[%(levelname)s]  %(message)s")
     else:
-        console_handler.setLevel(logging.ERROR)
+        console_handler.setLevel(logging.CRITICAL)
         console_formatter = logging.Formatter("%(asctime)s - %(message)s")
 
     console_handler.setFormatter(console_formatter)
