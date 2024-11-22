@@ -84,7 +84,7 @@ class ReferenceChecker:
         else:
             print(print_green("\U0001F389 No broken references.", self.no_color))
 
-        print("==================================================================")
+        print("====================================================================")
 
 
 def main() -> bool:
