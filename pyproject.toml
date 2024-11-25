@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "refcheck"
-version = "0.1.0"
+version = "0.1.1"
 description = "Tool for validating references in Markdown files."
 authors = ["Sebastian Flum <sebastian.flum.dev@gmail.com>"]
 readme = "README.md"
