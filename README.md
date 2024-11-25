@@ -49,7 +49,7 @@ Reference check complete.
 ```text
 $ refcheck .
 
-[+] Searching for markdown files in /home/flumi3/github/refcheck ...
+[+] Searching for markdown files in C:\Users\flumi3\github\refcheck ...
 [+] 2 Markdown files to check.
 - tests\sample_markdown.md
 - docs\Understanding-Markdown-References.md
