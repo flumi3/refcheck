@@ -1,9 +1,7 @@
-import os
 import pytest
 from unittest.mock import patch, mock_open
 from refcheck.validators import (
     is_valid_remote_reference,
-    file_exists,
     header_exists,
     normalize_header,
     is_valid_markdown_reference,
@@ -23,17 +21,6 @@ def test_is_valid_remote_reference(mock_requests_head):
     # Mock exception
     mock_requests_head.side_effect = Exception()
     assert not is_valid_remote_reference("https://example.com")
-
-
-@patch("os.path.exists")
-def test_file_exists(mock_path_exists):
-    # Mock file exists
-    mock_path_exists.return_value = True
-    assert file_exists("/project/docs/user_guide.md")
-
-    # Mock file does not exist
-    mock_path_exists.return_value = False
-    assert not file_exists("/project/docs/user_guide.md")
 
 
 def test_normalize_header():
