@@ -16,6 +16,9 @@ flake8 = "^7.1.1"
 [tool.poetry.scripts]
 refcheck = "refcheck.main:main"
 
+[tool.poetry.scripts]
+refcheck = "refcheck.main:main"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
