@@ -29,7 +29,8 @@ project's directory structure:
 
 - A reference to a Python script: [Main Python Script](src/main.py)
 - A link to a user guide Markdown file: [User Guide](docs/user_guide.md)
-- An absolute path reference: [Good Documentation](docs/good_doc.md)
+- An absolute path reference: [Good Documentation](/docs/good_doc.md)
+- An absolute path reference that is working: [Understanding-Markdown-References](/docs/Understanding-Markdown-References.md)
 
 ## Markdown Links with Headers
 

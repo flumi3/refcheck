@@ -36,6 +36,12 @@ class ReferenceChecker:
         self.broken_references: List[BrokenReference] = []
 
     def check_remote_references(self, file: str, remote_refs: List[Tuple[str, int]]):
+        """Check if remote references are reachable.
+
+        Args:
+            file: Path to the file where the references were made in.
+            remote_refs: List of remote references to check.
+        """
         logger.info("Checking remote references...")
         for url, line_num in remote_refs:
             logger.info(f"Checking remote reference: {url}")
@@ -47,28 +53,64 @@ class ReferenceChecker:
             print(f"{file}:{line_num}: {url} - {status}")
 
     def check_local_references(self, file: str, local_refs: List[Tuple[str, int]]):
-        for ref, line_num in local_refs:
-            logger.info(f"Checking local reference: {ref}")
-            if ".md" in ref or "#" in ref:
-                self.check_markdown_reference(file, ref, line_num)
-            else:
-                self.check_asset_reference(file, ref, line_num)
+        """Check if local references exist.
 
-    def check_markdown_reference(self, file: str, ref: str, line_num: int):
+        Args:
+            file: Path to the file where the references were made in.
+            local_refs: List of local references to check.
+
+        Local references can be:
+        - Markdown files: `file.md`, `file.md#header`, `#header`
+        - Assets: `image.png`, `folder/image.png`
+
+        References can be absolute or relative paths. Absolute paths are paths that start with `/` and are either
+        absolute paths on the file system or paths relative to the root of a repository. If the reference is
+        specified as an absolute path, we have to test the file twice: once with the absolute path and once with the
+        relative path to the root of the repository.
+
+        Example:
+
+        -> file: `C:/Users/user/repo/docs/file.md`  (Path to the file where the reference was made in)
+        -> reference: `/docs/other_file.md`  (Path to the referenced file)
+
+        This path seems to be absolute, but here it is a path relative to the root of a repository.
+        Therefore, we have to check if the file exists at the following locations:
+        1. `C:/docs/other_file.md` (Absolute path)
+        2. `C:/Users/user/repo/docs/other_file.md` (Relative path to the root of the repository)
+        """
+        for ref, line_num in local_refs:
+            logger.info(f"Checking local reference:")
+            logger.info(f"-> Origin file: {file}")
+            logger.info(f"-> Reference: {ref}")
+
+            if ".md" in ref or "#" in ref:
+                self._check_markdown_reference(file, ref, line_num)
+            else:
+                self._check_asset_reference(file, ref, line_num)
+
+    def _check_markdown_reference(self, file: str, ref: str, line_num: int):
         if is_valid_markdown_reference(ref, file):
             status = print_green_background("OK", self.no_color)
         else:
             status = print_red_background("BROKEN", self.no_color)
-            self.broken_references.append(BrokenReference(file, ref, line_num, status))
+            self.broken_references.append(BrokenReference(os.path.abspath(file), ref, line_num, status))
         print(f"{file}:{line_num}: {ref} - {status}")
 
-    def check_asset_reference(self, file: str, ref: str, line_num: int):
-        asset_path = os.path.join(os.path.dirname(file), ref)
-        if file_exists(asset_path):
+    def _check_asset_reference(self, file: str, ref: str, line_num: int):
+        """Check if local asset reference exists.
+
+        Args:
+            file: Path to the file where the reference was made in.
+            ref: The asset reference to check.
+            line_num: The line number where the reference was made in the file.
+        """
+        # asset_path = os.path.join(os.path.dirname(file), ref)
+        asset_path = ref
+        if file_exists(file, asset_path):
             status = print_green_background("OK", self.no_color)
         else:
             status = print_red_background("BROKEN", self.no_color)
-            self.broken_references.append(BrokenReference(file, ref, line_num, status))
+            self.broken_references.append(BrokenReference(os.path.abspath(file), ref, line_num, status))
         print(f"{file}:{line_num}: {ref} - {status}")
 
     def print_summary(self):
