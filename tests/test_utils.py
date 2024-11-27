@@ -1,6 +1,6 @@
 import os
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from refcheck.utils import (
     get_markdown_files_from_dir,
     get_markdown_files_from_args,
