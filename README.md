@@ -1,7 +1,7 @@
 # RefCheck
 
-RefCheck is a simple tool for validating markdown references and highlighting
-broken ones.
+RefCheck is a simple tool for finding broken references and links in Markdown
+files.
 
 ```text
 usage: refcheck [OPTIONS] [PATH ...]
