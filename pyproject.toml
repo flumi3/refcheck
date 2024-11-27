@@ -6,11 +6,12 @@ authors = ["Sebastian Flum <sebastian.flum.dev@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.9"
 requests = "^2.32.3"
 
 [tool.poetry.group.dev-dependencies.dependencies]
 pytest = "^8.3.3"
+flake8 = "^7.1.1"
 
 [tool.poetry.scripts]
 refcheck = "refcheck.main:main"
