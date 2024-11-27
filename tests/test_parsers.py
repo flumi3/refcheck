@@ -70,6 +70,7 @@ def test_file_links(sample_markdown):
         ("other-directory/README.md#installation-instructions", 46),
         ("/path/to/README.md#getting-started", 47),
         ("#file-links", 48),
+        ("\\test_parsers.py", 49),
     ]
     assert file_refs == expected
 
@@ -77,7 +78,7 @@ def test_file_links(sample_markdown):
 # Tests for HTML images
 def test_html_images(sample_markdown):
     html_images = _find_matches_with_line_numbers(HTML_IMAGE_PATTERN, sample_markdown, group=2)
-    expected = [("https://www.openai.com/logo.png", 52), ("/assets/img.png", 53), ("image.png", 54)]
+    expected = [("https://www.openai.com/logo.png", 53), ("/assets/img.png", 54), ("image.png", 55)]
     assert html_images == expected
 
 
@@ -165,6 +166,10 @@ def test_invalid_arg_parser():
             {"file_refs": [("/project/docs/good-doc.md#introduction", 1)]},
         ),
         ("- [Reference to a header in the same file](#getting-started)", {"file_refs": [("#getting-started", 1)]}),
+        (
+            "- [Absolute reference using backslash](\\path\\to\\README.md#getting-started)",
+            {"file_refs": [("\\path\\to\\README.md#getting-started", 1)]},
+        ),
         (
             '- <img src="https://www.openai.com/logo.png" alt="OpenAI Logo">',
             {"html_images": [("https://www.openai.com/logo.png", 1)]},
