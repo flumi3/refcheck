@@ -27,9 +27,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install Poetry
-        uses: poetry/actions/install-poetry@v1
-        with:
-          poetry-version: "1.8.4"
+        run: |
+          curl -sSL https://install.python-poetry.org | python - -y
 
       - name: Update Poetry configuration
         run: poetry config virtualenvs.create false
