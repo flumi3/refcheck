@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - '*.*.*'
+      - "*.*.*"
 
 permissions:
   contents: read
@@ -27,9 +27,8 @@ jobs:
           python-version: "3.10"
 
       - name: Install Poetry
-        uses: poetry/actions/install-poetry@v1
-        with:
-          poetry-version: '1.8.4'
+        run: |
+          curl -sSL https://install.python-poetry.org | python - -y
 
       - name: Update PATH
         run: |
