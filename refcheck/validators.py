@@ -125,8 +125,7 @@ def is_valid_markdown_reference(ref: Reference) -> bool:
     """Check if markdown references are reachable.
 
     Args:
-        ref: The reference to check, e.g. `file.md#header`, `#header`, `file.md`.
-        file_path: The path of the file where the reference was made in.
+        ref (Reference): Reference object containing the reference information.
 
     Returns:
         bool: True if the reference is valid and reachable, False otherwise.

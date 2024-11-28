@@ -6,6 +6,8 @@ from dataclasses import dataclass
 
 logger = logging.getLogger()
 
+CODE_BLOCK_PATTERN = re.compile(r"```(?P<content>[\s\S]*?)```")
+
 # Basic Markdown references
 BASIC_REFERENCE_PATTERN = re.compile(r"!*\[(?P<text>.+)\]\((?P<link>.+)\)")  # []() and ![]()
 BASIC_IMAGE_PATTERN = re.compile(r"!\[(?P<text>[^(){}\[\]]+)\]\((?P<link>[^(){}\[\]]+)\)")  # ![]()
@@ -13,15 +15,10 @@ BASIC_IMAGE_PATTERN = re.compile(r"!\[(?P<text>[^(){}\[\]]+)\]\((?P<link>[^(){}\
 # Inline Links - <http://example.com>
 INLINE_LINK_PATTERN = re.compile(r"<(?P<link>.+)>")
 
-CODE_BLOCK_PATTERN = re.compile(r"```(?P<content>[\s\S]*?)```")
-
-# HTTP/HTTPS Links - inline, footnotes, and remote images
-HTTP_LINK_PATTERN = re.compile(r"\[(.*?)\]\((https?://.*?)\)")  # all links in []() and ![]()
 RAW_LINK_PATTERN = re.compile(r"(^| )(?:(https?://\S+))")  # all links that are surrounded by nothing or spaces
 HTML_LINK_PATTERN = re.compile(r"<a\s+(?:[^>]*?\s+)?href=([\"\'])(.*?)\1")  # <a href="http://example.com">
 
 # Local File References - scripts, markdown files, and local images
-FILE_PATTERN = re.compile(r"\[(.*?)\]\((?!http)(.*?)\)")  # all local files in []() and ![]()
 HTML_IMAGE_PATTERN = re.compile(r"<img\s+(?:[^>]*?\s+)?src=([\"\'])(.*?)\1")  # <img src="image.png">
 
 
