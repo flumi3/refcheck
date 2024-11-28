@@ -3,6 +3,8 @@ import re
 import logging
 import requests
 
+from refcheck.parsers import Reference
+
 # Disable verify warnings for HTTPS requests
 requests.packages.urllib3.disable_warnings()  # type: ignore
 
@@ -88,6 +90,7 @@ def file_exists(origin_file_path: str, ref_file_path: str) -> bool:
     else:
         # It is a simple relative path. Check if the file exists relative to the file in which the reference was made in.
         ref_file_path = os.path.join(os.path.dirname(origin_file_path), ref_file_path)
+        logger.info(f"Path to check: {ref_file_path}")
         if os.path.exists(ref_file_path):
             file_exists = True
 
@@ -118,7 +121,7 @@ def normalize_header(header: str) -> str:
     return re.sub(r"[^a-zA-Z0-9 -]", "", header.strip().lower().replace(" ", "-"))
 
 
-def is_valid_markdown_reference(ref: str, file_path: str) -> bool:
+def is_valid_markdown_reference(ref: Reference) -> bool:
     """Check if markdown references are reachable.
 
     Args:
@@ -128,24 +131,24 @@ def is_valid_markdown_reference(ref: str, file_path: str) -> bool:
     Returns:
         bool: True if the reference is valid and reachable, False otherwise.
     """
-    base_path = os.path.dirname(file_path)  # Directory of the file
-
-    if ref.startswith("#"):
+    if ref.link.startswith("#"):
         logger.info("Reference is a header in the same Markdown file.")
-        referenced_header = ref[1:]  # Remove leading `#`
-        target_path = file_path
-    elif "#" in ref:
+        referenced_header = ref.link[1:]  # Remove leading `#`
+        target_path = ref.file_path
+    elif "#" in ref.link:
         logger.info("Reference is a header in another Markdown file.")
-        referenced_file, referenced_header = ref.split("#", 1)
+        referenced_file, referenced_header = ref.link.split("#", 1)
         target_path = referenced_file
     else:
-        referenced_file = ref
+        # Reference is a Markdown file
+        referenced_file = ref.link
         referenced_header = None
         target_path = referenced_file
 
     # Check if the referenced file exists
-    if not file_exists(file_path, target_path):
-        return False
+    if not ref.link.startswith("#"):  # Skip if the reference is a header in the same file because the file exists
+        if not file_exists(ref.file_path, target_path):
+            return False
 
     # Check if the referenced header exists
     if referenced_header and not header_exists(target_path, referenced_header):
