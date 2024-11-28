@@ -1,55 +1,164 @@
 import re
 import argparse
-from re import Pattern
+import logging
+from re import Pattern, Match
+from dataclasses import dataclass
 
-# HTTP/HTTPS Links - inline, footnotes, and remote images
-HTTP_LINK_PATTERN = re.compile(r"\[(.*?)\]\((https?://.*?)\)")  # all links in []() and ![]()
-INLINE_LINK_PATTERN = re.compile(r"<(https?://\S+)>")  # <http://example.com>
+logger = logging.getLogger()
+
+CODE_BLOCK_PATTERN = re.compile(r"```(?P<content>[\s\S]*?)```")
+
+# Basic Markdown references
+BASIC_REFERENCE_PATTERN = re.compile(r"!*\[(?P<text>.+)\]\((?P<link>.+)\)")  # []() and ![]()
+BASIC_IMAGE_PATTERN = re.compile(r"!\[(?P<text>[^(){}\[\]]+)\]\((?P<link>[^(){}\[\]]+)\)")  # ![]()
+
+# Inline Links - <http://example.com>
+INLINE_LINK_PATTERN = re.compile(r"<(?P<link>.+)>")
+
 RAW_LINK_PATTERN = re.compile(r"(^| )(?:(https?://\S+))")  # all links that are surrounded by nothing or spaces
 HTML_LINK_PATTERN = re.compile(r"<a\s+(?:[^>]*?\s+)?href=([\"\'])(.*?)\1")  # <a href="http://example.com">
 
 # Local File References - scripts, markdown files, and local images
-FILE_PATTERN = re.compile(r"\[(.*?)\]\((?!http)(.*?)\)")  # all local files in []() and ![]()
 HTML_IMAGE_PATTERN = re.compile(r"<img\s+(?:[^>]*?\s+)?src=([\"\'])(.*?)\1")  # <img src="image.png">
 
 
-def parse_markdown_file(file_path: str) -> dict:
-    """Parse a markdown file to extract references."""
-    try:
-        with open(file_path, "r", encoding="utf-8") as file:
-            content = file.read()
-    except FileNotFoundError:
-        print(f"Error: The file {file_path} was not found.")
-        return {}
-    except IOError as e:
-        print(f"Error: An I/O error occurred while reading the file {file_path}: {e}")
-        return {}
+@dataclass
+class Reference:
+    """Data class to store reference information.
 
-    http_links = _find_matches_with_line_numbers(HTTP_LINK_PATTERN, content, group=2)
-    inline_links = _find_matches_with_line_numbers(INLINE_LINK_PATTERN, content, group=1)
-    raw_links = _find_matches_with_line_numbers(RAW_LINK_PATTERN, content, group=2)
-    html_links = _find_matches_with_line_numbers(HTML_LINK_PATTERN, content, group=2)
-    file_refs = _find_matches_with_line_numbers(FILE_PATTERN, content, group=2)
-    html_images = _find_matches_with_line_numbers(HTML_IMAGE_PATTERN, content, group=2)
+    Attributes:
+        file_path: Path to the file where the reference was found.
+        line_number: Line number where the reference was found.
+        syntax: Syntax of the reference, e.g. `[text](link)`.
+        link: The link part of the reference, e.g. `link` in `[text](link)`.
+        is_remote: Whether the reference is a remote reference.
+    """
 
-    return {
-        "http_links": http_links,
-        "inline_links": inline_links,
-        "raw_links": raw_links,
-        "html_links": html_links,
-        "file_refs": file_refs,
-        "html_images": html_images,
-    }
+    file_path: str
+    line_number: int
+    syntax: str
+    link: str
+    is_remote: bool
 
 
-def _find_matches_with_line_numbers(pattern: Pattern[str], text: str, group: int = 0) -> list:
-    """Find regex matches along with their line numbers."""
-    matches_with_line_numbers = []
-    for match in re.finditer(pattern, text):
-        start_pos = match.start(group)
-        line_number = text.count("\n", 0, start_pos) + 1
-        matches_with_line_numbers.append((match.group(group), line_number))
-    return matches_with_line_numbers
+@dataclass
+class ReferenceMatch:
+    line_number: int
+    match: Match
+
+
+class MarkdownParser:
+
+    def parse_markdown_file(self, file_path: str) -> dict[str, list[Reference]]:
+        """Parse a markdown file to extract references.
+
+        Args:
+            file_path: Path to the markdown file.
+
+        Returns:
+            A dictionary containing lists of references found in the markdown file.
+        """
+        logger.info(f"Parsing markdown file: '{file_path}' ...")
+
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:
+                content = file.read()
+        except FileNotFoundError:
+            print(f"Error: The file {file_path} was not found.")
+            return {}
+        except IOError as e:
+            print(f"Error: An I/O error occurred while reading the file {file_path}: {e}")
+            return {}
+
+        # Get all code blocks, such as ```python ... ```, or ```text``` for ensuring that found references are not part
+        # of code blocks.
+        logger.info("Extracting code blocks ...")
+        code_blocks = self._find_matches_with_line_numbers(CODE_BLOCK_PATTERN, content)
+        logger.info(f"Found {len(code_blocks)} code blocks.")
+
+        # Get all references that look like this: [text](reference)
+        logger.info("Extracting basic references ...")
+        basic_references = self._find_matches_with_line_numbers(BASIC_REFERENCE_PATTERN, content)
+        basic_references = [ref for ref in basic_references if not ref.match[0].startswith("!")]
+        logger.info(f"Found {len(basic_references)} basic references.")
+        basic_references = self._drop_code_block_references(basic_references, code_blocks)
+        basic_references = self._process_basic_references(file_path, basic_references)
+
+        # Get all image references that look like this: ![text](reference)
+        logger.info("Extracting basic images ...")
+        basic_images = self._find_matches_with_line_numbers(BASIC_IMAGE_PATTERN, content)
+        logger.info(f"Found {len(basic_images)} basic images.")
+        basic_images = self._drop_code_block_references(basic_images, code_blocks)
+        basic_images = self._process_basic_references(file_path, basic_images)
+
+        logger.info("Extracting inline links ...")
+        inline_links = self._find_matches_with_line_numbers(INLINE_LINK_PATTERN, content)
+        logger.info(f"Found {len(inline_links)} inline links.")
+        inline_links = self._drop_code_block_references(inline_links, code_blocks)
+        inline_links = self._process_basic_references(file_path, inline_links)
+
+        return {
+            "basic_references": basic_references,
+            "basic_images": basic_images,
+            "inline_links": inline_links,
+        }
+
+    def _drop_code_block_references(
+        self, references: list[ReferenceMatch], code_blocks: list[ReferenceMatch]
+    ) -> list[ReferenceMatch]:
+        """Drop references that are part of code blocks."""
+        logger.info("Dropping references that are part of code blocks ...")
+        for ref in references:
+            for code_block in code_blocks:
+                logger.debug(ref.match.group(0))
+                logger.debug(code_block.match.group(1))
+
+                if ref.match.group(0) in code_block.match.group(1):
+                    logger.info(f"Dropping reference: {ref.match.group(0)}")
+                    references.remove(ref)
+                    break
+        return references
+
+    def _is_remote_reference(self, link: str) -> bool:
+        """Check if a link is a remote reference."""
+        protocol_pattern = re.compile(
+            r"^([a-zA-Z][a-zA-Z\d+\-.]*):.*"
+        )  # matches anything that looks like a `protocol:`
+        return bool(protocol_pattern.match(link))
+
+    def _process_basic_references(self, file_path: str, matches: list[ReferenceMatch]) -> list[Reference]:
+        """Process basic references."""
+        references: list[Reference] = []
+        for match in matches:
+            link = match.match.group("link")
+            reference = Reference(
+                file_path=file_path,
+                line_number=match.line_number,
+                syntax=match.match.group(0),
+                link=link,
+                is_remote=self._is_remote_reference(link),
+            )
+            logger.info(reference.__repr__())
+            references.append(reference)
+        return references
+
+    def _process_inline_links(self, file_path: str, matches: list[ReferenceMatch]) -> list[Reference]:
+        # TODO: implement.
+        # docs\Understanding-Markdown-References.md:49: <a href="https://www.wikipedia.org">Wikipedia</a>
+        # docs\Understanding-Markdown-References.md:50: <a href='https://www.github.com'>GitHub</a>
+        # docs\Understanding-Markdown-References.md:56: <img src="https://www.openai.com/logo.png" alt="OpenAI Logo">
+        # docs\Understanding-Markdown-References.md:57: <img src="/assets/img.png" alt="Absolute Path Image">
+        # docs\Understanding-Markdown-References.md:58: <img src="image.png" alt="Relative Path Image">
+        pass
+
+    def _find_matches_with_line_numbers(self, pattern: Pattern[str], text: str) -> list[ReferenceMatch]:
+        """Find regex matches along with their line numbers."""
+        matches_with_line_numbers = []
+        for match in re.finditer(pattern, text):
+            start_pos = match.start(0)
+            line_number = text.count("\n", 0, start_pos) + 1
+            matches_with_line_numbers.append(ReferenceMatch(line_number=line_number, match=match))
+        return matches_with_line_numbers
 
 
 # ============================== ARGUMENT PARSER ===============================
