@@ -27,7 +27,7 @@ def load_exclusion_patterns() -> list:
         with open(IGNORE_FILE, "r", encoding="utf-8") as file:
             exclusions = [line.strip() for line in file if line.strip()]
 
-    logger.info(f"Will skip these files and directories: {exclusions}")
+    print(f"[!] WARNING: Will skip these files and directories: {exclusions}")
     return exclusions
 
 

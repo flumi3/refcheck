@@ -1,7 +1,7 @@
 # RefCheck
 
-RefCheck is a simple tool for validating markdown references and highlighting
-broken ones.
+RefCheck is a simple tool for finding broken references and links in Markdown
+files.
 
 ```text
 usage: refcheck [OPTIONS] [PATH ...]
@@ -16,6 +16,9 @@ options:
   -n, --no-color        Turn off colored output
   -v, --verbose         Enable verbose output
 ```
+
+> :memo: **Note**: RefCheck is still in its early development. If you encounter any issues or have suggestions, please
+> feel free to open an issue or pull request.
 
 ## Installation
 
@@ -33,11 +36,10 @@ $ refcheck README.md
 [+] 1 Markdown files to check.
 - README.md
 
-[+] Checking README.md...
+[+] FILE: README.md...
 README.md:3: #introduction - OK
 README.md:5: #installation - OK
 README.md:6: #getting-started - OK
-README.md:24: https://www.github.com - OK
 
 Reference check complete.
 
@@ -47,18 +49,19 @@ Reference check complete.
 ```
 
 ```text
-$ refcheck .
+$ refcheck . --check-remote
 
 [+] Searching for markdown files in C:\Users\flumi3\github\refcheck ...
+
 [+] 2 Markdown files to check.
 - tests\sample_markdown.md
 - docs\Understanding-Markdown-References.md
 
-[+] Checking tests\sample_markdown.md...
+[+] FILE: tests\sample_markdown.md...
 tests\sample_markdown.md:39: /img/image.png - BROKEN
 tests\sample_markdown.md:52: https://www.openai.com/logo.png - BROKEN
 
-[+] Checking docs\Understanding-Markdown-References.md...
+[+] FILE: docs\Understanding-Markdown-References.md...
 docs\Understanding-Markdown-References.md:42: #local-file-references - OK
 
 Reference check complete.
@@ -75,6 +78,6 @@ tests\sample_markdown.md:52: https://www.openai.com/logo.png
 - Find and check various reference patterns in markdown files
 - Highlight broken references
 - Validate absolute and relative file paths to any file type
-- Support for checking remote references, such as \[Google\]\(https://www.google.com\)
+- Support for checking remote references, such as \[Google\]\(https://www.google.com)
 - User friendly CLI
 - Easy CI pipeline integration

@@ -1,12 +1,12 @@
-import os
 import sys
+import requests
 import logging
-from typing import List, Tuple
+from typing import List
 from dataclasses import dataclass
 
 from refcheck.log_conf import setup_logging
-from refcheck.parsers import parse_markdown_file, init_arg_parser
-from refcheck.validators import is_valid_remote_reference, file_exists, is_valid_markdown_reference
+from refcheck.parsers import MarkdownParser, init_arg_parser, Reference
+from refcheck.validators import file_exists, is_valid_markdown_reference
 from refcheck.utils import (
     get_markdown_files_from_args,
     print_green_background,
@@ -19,13 +19,6 @@ logger = logging.getLogger()
 
 
 @dataclass
-class Reference:
-    file: str
-    ref: str
-    line_num: int
-
-
-@dataclass
 class BrokenReference(Reference):
     status: str
 
@@ -35,83 +28,41 @@ class ReferenceChecker:
         self.no_color = no_color
         self.broken_references: List[BrokenReference] = []
 
-    def check_remote_references(self, file: str, remote_refs: List[Tuple[str, int]]):
-        """Check if remote references are reachable.
+    def check_references(self, references: list[Reference], check_remote: bool):
+        for ref in references:
+            logger.info(f"REFERENCE: {ref.__dict__}")
 
-        Args:
-            file: Path to the file where the references were made in.
-            remote_refs: List of remote references to check.
-        """
-        logger.info("Checking remote references...")
-        for url, line_num in remote_refs:
-            logger.info(f"Checking remote reference: {url}")
-            if is_valid_remote_reference(url):
-                status = print_green_background("OK", self.no_color)
+            if ref.is_remote and not check_remote:
+                logger.warning("Skipping remote reference check.")
+                continue
+            elif ref.is_remote and check_remote:
+                # Check if remote reference is reachable
+                try:
+                    response = requests.head(ref.link, timeout=5, verify=False)
+                    if response.status_code < 400:
+                        status = print_green_background("OK", self.no_color)
+                    else:
+                        logger.info(f"Status code: {response.status_code}, Reason: {response.reason}")
+                        status = print_red_background("BROKEN", self.no_color)
+                        self.broken_references.append(BrokenReference(**ref.__dict__, status=status))
+                except requests.exceptions.RequestException as e:
+                    logger.error(f"Error: Could not reach remote reference '{ref.link}': {e}")
+                    status = print_red_background("BROKEN", self.no_color)
+                    self.broken_references.append(BrokenReference(**ref.__dict__, status=status))
             else:
-                status = print_red_background("BROKEN", self.no_color)
-                self.broken_references.append(BrokenReference(file, url, line_num, status))
-            print(f"{file}:{line_num}: {url} - {status}")
-
-    def check_local_references(self, file: str, local_refs: List[Tuple[str, int]]):
-        """Check if local references exist.
-
-        Args:
-            file: Path to the file where the references were made in.
-            local_refs: List of local references to check.
-
-        Local references can be:
-        - Markdown files: `file.md`, `file.md#header`, `#header`
-        - Assets: `image.png`, `folder/image.png`
-
-        References can be absolute or relative paths. Absolute paths are paths that start with `/` and are either
-        absolute paths on the file system or paths relative to the root of a repository. If the reference is
-        specified as an absolute path, we have to test the file twice: once with the absolute path and once with the
-        relative path to the root of the repository.
-
-        Example:
-
-        -> file: `C:/Users/user/repo/docs/file.md`  (Path to the file where the reference was made in)
-        -> reference: `/docs/other_file.md`  (Path to the referenced file)
-
-        This path seems to be absolute, but here it is a path relative to the root of a repository.
-        Therefore, we have to check if the file exists at the following locations:
-        1. `C:/docs/other_file.md` (Absolute path)
-        2. `C:/Users/user/repo/docs/other_file.md` (Relative path to the root of the repository)
-        """
-        for ref, line_num in local_refs:
-            logger.info(f"Checking local reference:")
-            logger.info(f"-> Origin file: {file}")
-            logger.info(f"-> Reference: {ref}")
-
-            if ".md" in ref or "#" in ref:
-                self._check_markdown_reference(file, ref, line_num)
-            else:
-                self._check_asset_reference(file, ref, line_num)
-
-    def _check_markdown_reference(self, file: str, ref: str, line_num: int):
-        if is_valid_markdown_reference(ref, file):
-            status = print_green_background("OK", self.no_color)
-        else:
-            status = print_red_background("BROKEN", self.no_color)
-            self.broken_references.append(BrokenReference(os.path.abspath(file), ref, line_num, status))
-        print(f"{file}:{line_num}: {ref} - {status}")
-
-    def _check_asset_reference(self, file: str, ref: str, line_num: int):
-        """Check if local asset reference exists.
-
-        Args:
-            file: Path to the file where the reference was made in.
-            ref: The asset reference to check.
-            line_num: The line number where the reference was made in the file.
-        """
-        # asset_path = os.path.join(os.path.dirname(file), ref)
-        asset_path = ref
-        if file_exists(file, asset_path):
-            status = print_green_background("OK", self.no_color)
-        else:
-            status = print_red_background("BROKEN", self.no_color)
-            self.broken_references.append(BrokenReference(os.path.abspath(file), ref, line_num, status))
-        print(f"{file}:{line_num}: {ref} - {status}")
+                if ".md" in ref.link or "#" in ref.link:
+                    if is_valid_markdown_reference(ref):
+                        status = print_green_background("OK", self.no_color)
+                    else:
+                        status = print_red_background("BROKEN", self.no_color)
+                        self.broken_references.append(BrokenReference(**ref.__dict__, status=status))
+                else:
+                    if file_exists(ref.file_path, ref.link):
+                        status = print_green_background("OK", self.no_color)
+                    else:
+                        status = print_red_background("BROKEN", self.no_color)
+                        self.broken_references.append(BrokenReference(**ref.__dict__, status=status))
+            print(f"{ref.file_path}:{ref.line_number}: {ref.syntax} - {status}")
 
     def print_summary(self):
         print("\nReference check complete.")
@@ -119,10 +70,10 @@ class ReferenceChecker:
 
         if self.broken_references:
             print(print_red(f"[!] {len(self.broken_references)} broken references found:", self.no_color))
-            self.broken_references = sorted(self.broken_references, key=lambda x: (x.file, x.line_num))
+            self.broken_references = sorted(self.broken_references, key=lambda ref: (ref.file_path, ref.line_number))
 
             for broken_ref in self.broken_references:
-                print(f"{broken_ref.file}:{broken_ref.line_num}: {broken_ref.ref}")
+                print(f"{broken_ref.file_path}:{broken_ref.line_number}: {broken_ref.syntax}")
         else:
             print(print_green("\U0001F389 No broken references.", self.no_color))
 
@@ -138,8 +89,12 @@ def main() -> bool:
         parser.print_help()
         return False
 
-    setup_logging(verbose=args.verbose)  # Setup logging based on the --verbose flag
-    no_color = args.no_color
+    # Setup logging based on the --verbose flag
+    setup_logging(verbose=args.verbose)
+
+    check_remote: bool = args.check_remote
+    if not check_remote:
+        print("[!] WARNING: Skipping remote reference check. Enable with arg --check-remote.")
 
     # Retrieve all markdown files specified by the user
     markdown_files = get_markdown_files_from_args(args.paths, args.exclude)
@@ -147,31 +102,29 @@ def main() -> bool:
         print("[!] No Markdown files specified or found.")
         return False
 
-    print(f"[+] {len(markdown_files)} Markdown files to check.")
+    print(f"\n[+] {len(markdown_files)} Markdown files to check.")
     for file in markdown_files:
         print(f"- {file}")
 
-    checker = ReferenceChecker(no_color)
+    parser = MarkdownParser()
+    checker = ReferenceChecker(args.no_color)
 
     for file in markdown_files:
-        print(f"\n[+] Checking {file}...")
-        references = parse_markdown_file(file)
+        print(f"\n[+] FILE: {file}")
+        references = parser.parse_markdown_file(file)
 
-        remote_refs = (
-            references["http_links"] + references["inline_links"] + references["raw_links"] + references["html_links"]
-        )
-        local_refs = references["file_refs"] + references["html_images"]
+        basic_refs = references["basic_references"]
+        logging.info(f"Checking {len(basic_refs)} basic references ...")
+        checker.check_references(basic_refs, check_remote)
 
-        if not remote_refs and not local_refs:
-            print("-> No references found.")
-            continue
+        image_refs = references["basic_images"]
+        logging.info(f"Checking {len(image_refs)} image references ...")
+        checker.check_references(image_refs, check_remote)
 
-        if args.check_remote:
-            checker.check_remote_references(file, remote_refs)
-        else:
-            logger.warning("Skipping remote reference check. Enable with arg --check-remote.")
-
-        checker.check_local_references(file, local_refs)
+        # TODO: activate when pre-processing is implemented in parsers
+        # inline_links = references["inline_links"]
+        # logging.info(f"Checking {len(inline_links)} inline links ...")
+        # checker.check_references(inline_links, check_remote)
 
     checker.print_summary()
     return not bool(checker.broken_references)
