@@ -5,7 +5,7 @@ from typing import List, Tuple
 from dataclasses import dataclass
 
 from refcheck.log_conf import setup_logging
-from refcheck.parsers import parse_markdown_file, init_arg_parser, Reference
+from refcheck.parsers import MarkdownParser, init_arg_parser, Reference
 from refcheck.validators import is_valid_remote_reference, file_exists, is_valid_markdown_reference
 from refcheck.utils import (
     get_markdown_files_from_args,
@@ -95,11 +95,12 @@ def main() -> bool:
     for file in markdown_files:
         print(f"- {file}")
 
+    parser = MarkdownParser()
     checker = ReferenceChecker(args.no_color)
 
     for file in markdown_files:
         print(f"\n[+] FILE: {file}")
-        references = parse_markdown_file(file)
+        references = parser.parse_markdown_file(file)
 
         basic_refs = references["basic_references"]
         logging.info(f"Checking {len(basic_refs)} basic references ...")

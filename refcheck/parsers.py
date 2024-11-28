@@ -50,112 +50,118 @@ class ReferenceMatch:
     match: Match
 
 
-def parse_markdown_file(file_path: str) -> dict:
-    """Parse a markdown file to extract references."""
-    logger.info(f"Parsing markdown file: '{file_path}' ...")
+class MarkdownParser:
 
-    try:
-        with open(file_path, "r", encoding="utf-8") as file:
-            content = file.read()
-    except FileNotFoundError:
-        print(f"Error: The file {file_path} was not found.")
-        return {}
-    except IOError as e:
-        print(f"Error: An I/O error occurred while reading the file {file_path}: {e}")
-        return {}
+    def parse_markdown_file(self, file_path: str) -> dict[str, list[Reference]]:
+        """Parse a markdown file to extract references.
 
-    # Get all code blocks, such as ```python ... ```, or ```text``` for ensuring that found references are not part
-    # of code blocks.
-    logger.info("Extracting code blocks ...")
-    code_blocks = _find_matches_with_line_numbers(CODE_BLOCK_PATTERN, content)
-    logger.info(f"Found {len(code_blocks)} code blocks.")
+        Args:
+            file_path: Path to the markdown file.
 
-    # Get all references that look like this: [text](reference)
-    logger.info("Extracting basic references ...")
-    basic_references = _find_matches_with_line_numbers(BASIC_REFERENCE_PATTERN, content)
-    basic_references = [ref for ref in basic_references if not ref.match[0].startswith("!")]
-    logger.info(f"Found {len(basic_references)} basic references.")
-    basic_references = _drop_code_block_references(basic_references, code_blocks)
-    basic_references = _process_basic_references(file_path, basic_references)
+        Returns:
+            A dictionary containing lists of references found in the markdown file.
+        """
+        logger.info(f"Parsing markdown file: '{file_path}' ...")
 
-    # Get all image references that look like this: ![text](reference)
-    logger.info("Extracting basic images ...")
-    basic_images = _find_matches_with_line_numbers(BASIC_IMAGE_PATTERN, content)
-    logger.info(f"Found {len(basic_images)} basic images.")
-    basic_images = _drop_code_block_references(basic_images, code_blocks)
-    basic_images = _process_basic_references(file_path, basic_images)
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:
+                content = file.read()
+        except FileNotFoundError:
+            print(f"Error: The file {file_path} was not found.")
+            return {}
+        except IOError as e:
+            print(f"Error: An I/O error occurred while reading the file {file_path}: {e}")
+            return {}
 
-    logger.info(f"Extracting inline links ...")
-    inline_links = _find_matches_with_line_numbers(INLINE_LINK_PATTERN, content)
-    logger.info(f"Found {len(inline_links)} inline links.")
-    inline_links = _drop_code_block_references(inline_links, code_blocks)
-    inline_links = _process_basic_references(file_path, inline_links)
+        # Get all code blocks, such as ```python ... ```, or ```text``` for ensuring that found references are not part
+        # of code blocks.
+        logger.info("Extracting code blocks ...")
+        code_blocks = self._find_matches_with_line_numbers(CODE_BLOCK_PATTERN, content)
+        logger.info(f"Found {len(code_blocks)} code blocks.")
 
-    return {
-        "basic_references": basic_references,
-        "basic_images": basic_images,
-        "inline_links": inline_links,
-    }
+        # Get all references that look like this: [text](reference)
+        logger.info("Extracting basic references ...")
+        basic_references = self._find_matches_with_line_numbers(BASIC_REFERENCE_PATTERN, content)
+        basic_references = [ref for ref in basic_references if not ref.match[0].startswith("!")]
+        logger.info(f"Found {len(basic_references)} basic references.")
+        basic_references = self._drop_code_block_references(basic_references, code_blocks)
+        basic_references = self._process_basic_references(file_path, basic_references)
 
+        # Get all image references that look like this: ![text](reference)
+        logger.info("Extracting basic images ...")
+        basic_images = self._find_matches_with_line_numbers(BASIC_IMAGE_PATTERN, content)
+        logger.info(f"Found {len(basic_images)} basic images.")
+        basic_images = self._drop_code_block_references(basic_images, code_blocks)
+        basic_images = self._process_basic_references(file_path, basic_images)
 
-def _drop_code_block_references(
-    references: list[ReferenceMatch], code_blocks: list[ReferenceMatch]
-) -> list[ReferenceMatch]:
-    """Drop references that are part of code blocks."""
-    logger.info("Dropping references that are part of code blocks ...")
-    for ref in references:
-        for code_block in code_blocks:
-            logger.debug(ref.match.group(0))
-            logger.debug(code_block.match.group(1))
+        logger.info(f"Extracting inline links ...")
+        inline_links = self._find_matches_with_line_numbers(INLINE_LINK_PATTERN, content)
+        logger.info(f"Found {len(inline_links)} inline links.")
+        inline_links = self._drop_code_block_references(inline_links, code_blocks)
+        inline_links = self._process_basic_references(file_path, inline_links)
 
-            if ref.match.group(0) in code_block.match.group(1):
-                logger.info(f"Dropping reference: {ref.match.group(0)}")
-                references.remove(ref)
-                break
-    return references
+        return {
+            "basic_references": basic_references,
+            "basic_images": basic_images,
+            "inline_links": inline_links,
+        }
 
+    def _drop_code_block_references(
+        self, references: list[ReferenceMatch], code_blocks: list[ReferenceMatch]
+    ) -> list[ReferenceMatch]:
+        """Drop references that are part of code blocks."""
+        logger.info("Dropping references that are part of code blocks ...")
+        for ref in references:
+            for code_block in code_blocks:
+                logger.debug(ref.match.group(0))
+                logger.debug(code_block.match.group(1))
 
-def _is_remote_reference(link: str) -> bool:
-    """Check if a link is a remote reference."""
-    protocol_pattern = re.compile(r"^([a-zA-Z][a-zA-Z\d+\-.]*):.*")  # matches anything that looks like a `protocol:`
-    return bool(protocol_pattern.match(link))
+                if ref.match.group(0) in code_block.match.group(1):
+                    logger.info(f"Dropping reference: {ref.match.group(0)}")
+                    references.remove(ref)
+                    break
+        return references
 
+    def _is_remote_reference(self, link: str) -> bool:
+        """Check if a link is a remote reference."""
+        protocol_pattern = re.compile(
+            r"^([a-zA-Z][a-zA-Z\d+\-.]*):.*"
+        )  # matches anything that looks like a `protocol:`
+        return bool(protocol_pattern.match(link))
 
-def _process_basic_references(file_path: str, matches: list[ReferenceMatch]) -> list[Reference]:
-    """Process basic references."""
-    references: list[Reference] = []
-    for match in matches:
-        link = match.match.group("link")
-        reference = Reference(
-            file_path=file_path,
-            line_number=match.line_number,
-            syntax=match.match.group(0),
-            link=link,
-            is_remote=_is_remote_reference(link),
-        )
-        logger.info(reference.__repr__())
-        references.append(reference)
-    return references
+    def _process_basic_references(self, file_path: str, matches: list[ReferenceMatch]) -> list[Reference]:
+        """Process basic references."""
+        references: list[Reference] = []
+        for match in matches:
+            link = match.match.group("link")
+            reference = Reference(
+                file_path=file_path,
+                line_number=match.line_number,
+                syntax=match.match.group(0),
+                link=link,
+                is_remote=self._is_remote_reference(link),
+            )
+            logger.info(reference.__repr__())
+            references.append(reference)
+        return references
 
+    def _process_inline_links(self, file_path: str, matches: list[ReferenceMatch]) -> list[Reference]:
+        # TODO: implement.
+        # docs\Understanding-Markdown-References.md:49: <a href="https://www.wikipedia.org">Wikipedia</a>
+        # docs\Understanding-Markdown-References.md:50: <a href='https://www.github.com'>GitHub</a>
+        # docs\Understanding-Markdown-References.md:56: <img src="https://www.openai.com/logo.png" alt="OpenAI Logo">
+        # docs\Understanding-Markdown-References.md:57: <img src="/assets/img.png" alt="Absolute Path Image">
+        # docs\Understanding-Markdown-References.md:58: <img src="image.png" alt="Relative Path Image">
+        pass
 
-def _process_inline_links(file_path: str, matches: list[ReferenceMatch]) -> list[Reference]:
-    # TODO: implement.
-    # docs\Understanding-Markdown-References.md:49: <a href="https://www.wikipedia.org">Wikipedia</a>
-    # docs\Understanding-Markdown-References.md:50: <a href='https://www.github.com'>GitHub</a>
-    # docs\Understanding-Markdown-References.md:56: <img src="https://www.openai.com/logo.png" alt="OpenAI Logo">
-    # docs\Understanding-Markdown-References.md:57: <img src="/assets/img.png" alt="Absolute Path Image">
-    # docs\Understanding-Markdown-References.md:58: <img src="image.png" alt="Relative Path Image">
-    pass
-
-
-def _find_matches_with_line_numbers(pattern: Pattern[str], text: str) -> list[ReferenceMatch]:
-    """Find regex matches along with their line numbers."""
-    matches_with_line_numbers = []
-    for match in re.finditer(pattern, text):
-        start_pos = match.start(0)
-        line_number = text.count("\n", 0, start_pos) + 1
-        matches_with_line_numbers.append(ReferenceMatch(line_number=line_number, match=match))
-    return matches_with_line_numbers
+    def _find_matches_with_line_numbers(self, pattern: Pattern[str], text: str) -> list[ReferenceMatch]:
+        """Find regex matches along with their line numbers."""
+        matches_with_line_numbers = []
+        for match in re.finditer(pattern, text):
+            start_pos = match.start(0)
+            line_number = text.count("\n", 0, start_pos) + 1
+            matches_with_line_numbers.append(ReferenceMatch(line_number=line_number, match=match))
+        return matches_with_line_numbers
 
 
 # ============================== ARGUMENT PARSER ===============================
