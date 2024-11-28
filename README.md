@@ -78,6 +78,6 @@ tests\sample_markdown.md:52: https://www.openai.com/logo.png
 - Find and check various reference patterns in markdown files
 - Highlight broken references
 - Validate absolute and relative file paths to any file type
-- Support for checking remote references, such as \[Google\]\(https://www.google.com\)
+- Support for checking remote references, such as \[Google\]\(https://www.google.com)
 - User friendly CLI
 - Easy CI pipeline integration
