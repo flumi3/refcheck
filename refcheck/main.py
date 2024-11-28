@@ -1,12 +1,12 @@
-import os
 import sys
+import requests
 import logging
-from typing import List, Tuple
+from typing import List
 from dataclasses import dataclass
 
 from refcheck.log_conf import setup_logging
 from refcheck.parsers import MarkdownParser, init_arg_parser, Reference
-from refcheck.validators import is_valid_remote_reference, file_exists, is_valid_markdown_reference
+from refcheck.validators import file_exists, is_valid_markdown_reference
 from refcheck.utils import (
     get_markdown_files_from_args,
     print_green_background,
@@ -36,8 +36,19 @@ class ReferenceChecker:
                 logger.warning("Skipping remote reference check.")
                 continue
             elif ref.is_remote and check_remote:
-                # TODO: check if reference is remote. If yes check if reachable
-                pass
+                # Check if remote reference is reachable
+                try:
+                    response = requests.head(ref.link, timeout=5, verify=False)
+                    if response.status_code < 400:
+                        status = print_green_background("OK", self.no_color)
+                    else:
+                        logger.info(f"Status code: {response.status_code}, Reason: {response.reason}")
+                        status = print_red_background("BROKEN", self.no_color)
+                        self.broken_references.append(BrokenReference(**ref.__dict__, status=status))
+                except requests.exceptions.RequestException as e:
+                    logger.error(f"Error: Could not reach remote reference '{ref.link}': {e}")
+                    status = print_red_background("BROKEN", self.no_color)
+                    self.broken_references.append(BrokenReference(**ref.__dict__, status=status))
             else:
                 if ".md" in ref.link or "#" in ref.link:
                     if is_valid_markdown_reference(ref):
@@ -51,7 +62,7 @@ class ReferenceChecker:
                     else:
                         status = print_red_background("BROKEN", self.no_color)
                         self.broken_references.append(BrokenReference(**ref.__dict__, status=status))
-                print(f"{ref.file_path}:{ref.line_number}: {ref.syntax} - {status}")
+            print(f"{ref.file_path}:{ref.line_number}: {ref.syntax} - {status}")
 
     def print_summary(self):
         print("\nReference check complete.")
