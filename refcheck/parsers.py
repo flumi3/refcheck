@@ -13,6 +13,8 @@ BASIC_IMAGE_PATTERN = re.compile(r"!\[(?P<text>[^(){}\[\]]+)\]\((?P<link>[^(){}\
 # Inline Links - <http://example.com>
 INLINE_LINK_PATTERN = re.compile(r"<(?P<link>.+)>")
 
+CODE_BLOCK_PATTERN = re.compile(r"```(?P<content>[\s\S]*?)```")
+
 # HTTP/HTTPS Links - inline, footnotes, and remote images
 HTTP_LINK_PATTERN = re.compile(r"\[(.*?)\]\((https?://.*?)\)")  # all links in []() and ![]()
 RAW_LINK_PATTERN = re.compile(r"(^| )(?:(https?://\S+))")  # all links that are surrounded by nothing or spaces
@@ -62,22 +64,31 @@ def parse_markdown_file(file_path: str) -> dict:
         print(f"Error: An I/O error occurred while reading the file {file_path}: {e}")
         return {}
 
+    # Get all code blocks, such as ```python ... ```, or ```text``` for ensuring that found references are not part
+    # of code blocks.
+    logger.info("Extracting code blocks ...")
+    code_blocks = _find_matches_with_line_numbers(CODE_BLOCK_PATTERN, content)
+    logger.info(f"Found {len(code_blocks)} code blocks.")
+
     # Get all references that look like this: [text](reference)
     logger.info("Extracting basic references ...")
     basic_references = _find_matches_with_line_numbers(BASIC_REFERENCE_PATTERN, content)
     basic_references = [ref for ref in basic_references if not ref.match[0].startswith("!")]
     logger.info(f"Found {len(basic_references)} basic references.")
+    basic_references = _drop_code_block_references(basic_references, code_blocks)
     basic_references = _process_basic_references(file_path, basic_references)
 
     # Get all image references that look like this: ![text](reference)
     logger.info("Extracting basic images ...")
     basic_images = _find_matches_with_line_numbers(BASIC_IMAGE_PATTERN, content)
     logger.info(f"Found {len(basic_images)} basic images.")
+    basic_images = _drop_code_block_references(basic_images, code_blocks)
     basic_images = _process_basic_references(file_path, basic_images)
 
     logger.info(f"Extracting inline links ...")
     inline_links = _find_matches_with_line_numbers(INLINE_LINK_PATTERN, content)
     logger.info(f"Found {len(inline_links)} inline links.")
+    inline_links = _drop_code_block_references(inline_links, code_blocks)
     inline_links = _process_basic_references(file_path, inline_links)
 
     return {
@@ -85,6 +96,23 @@ def parse_markdown_file(file_path: str) -> dict:
         "basic_images": basic_images,
         "inline_links": inline_links,
     }
+
+
+def _drop_code_block_references(
+    references: list[ReferenceMatch], code_blocks: list[ReferenceMatch]
+) -> list[ReferenceMatch]:
+    """Drop references that are part of code blocks."""
+    logger.info("Dropping references that are part of code blocks ...")
+    for ref in references:
+        for code_block in code_blocks:
+            logger.debug(ref.match.group(0))
+            logger.debug(code_block.match.group(1))
+
+            if ref.match.group(0) in code_block.match.group(1):
+                logger.info(f"Dropping reference: {ref.match.group(0)}")
+                references.remove(ref)
+                break
+    return references
 
 
 def _is_remote_reference(link: str) -> bool:
