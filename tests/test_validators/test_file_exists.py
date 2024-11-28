@@ -107,9 +107,9 @@ def test_file_exists_absolute_path_in_subdirectory(mock_os_path_exists, mock_os_
     #   -> Origin file: `C:/Users/user/repo/file.md`
     #   -> Reference: `/docs/other_file.md`
     #
-    # The reference path `/docs/other_file.md` seems to be an absolute path, but it is actually a relative path to the root
-    # of `repo` in which the `file.md` is located. This is valid reference syntax. Therefore, the function should check if
-    # the file exists at the following locations:
+    # The reference path `/docs/other_file.md` seems to be an absolute path, but it is actually a relative path to the
+    # root  of `repo` in which the `file.md` is located. This is valid reference syntax. Therefore, the function should
+    # check if the file exists at the following locations:
     #   1. `C:/docs/other_file.md` (Absolute path)
     #   2. `C:/Users/user/repo/docs/other_file.md`
 
@@ -152,13 +152,14 @@ def test_file_exists_traverse_up_directory_tree(mock_os_path_exists, mock_os_pat
     # - If not found as an absolute path, it treats it as a path related to the directories above the origin file.
     # Therefore, the function should check if the file exists at the following locations:
     #   1. `/relative_file.md` (Absolute path)
-    #   2. `/absolute/path/relative_file.md` (Relative path traversing up the tree from `/absolute/path/subdir/origin.md`)
+    #   2. `/absolute/path/relative_file.md` (Relative path traversing up the tree from
+    #       `/absolute/path/subdir/origin.md`)
     #
     # The expected behavior is to successfully find the `relative_file.md` file while traversing up the tree.
 
     mock_os_path_exists.side_effect = lambda path: path in [
         "/absolute/path/file.md",  # Simulating that this file exists
-        "/absolute/path/relative_file.md",  # Simulating that this file exists as a relative path in the parent directory
+        "/absolute/path/relative_file.md",  # Simulating that this file exists as relative path in the parent directory
     ]
 
     mock_os_path_abspath.return_value = "/absolute/path/file.md"  # Mocking the absolute path of the origin file

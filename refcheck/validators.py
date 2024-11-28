@@ -44,16 +44,16 @@ def file_exists(origin_file_path: str, ref_file_path: str) -> bool:
     elif ref_file_path.startswith("/"):
         # This is an absolute path. We have to check if the file exists at the absolute path or as a path relative to
         # every possible subpart of the origin file path.
-        logger.warning(f"Reference is absolute.")
+        logger.warning("Reference is absolute.")
 
         # First, test the file with the absolute path
-        logger.info(f"Checking if the file exists as an absolute path ...")
+        logger.info("Checking if the file exists as an absolute path ...")
         abs_ref_path = os.path.abspath(ref_file_path)
         logger.info(f"-> '{abs_ref_path}'")
         if os.path.exists(abs_ref_path):
             file_exists = True
         else:
-            logger.info(f"File does not exist as an absolute path.")
+            logger.info("File does not exist as an absolute path.")
             # Strip the leading slash to convert the path to a relative path
             ref = ref_file_path[1:]
 
@@ -61,7 +61,7 @@ def file_exists(origin_file_path: str, ref_file_path: str) -> bool:
             absolute_file_path = os.path.abspath(origin_file_path)
 
             # Check if the file exists relative to the file in which the reference was made in
-            logger.info(f"Checking if the path exists relative to the file in which the reference was made in ...")
+            logger.info("Checking if the path exists relative to the file in which the reference was made in ...")
             abs_ref_path = os.path.join(os.path.dirname(absolute_file_path), ref)
             logger.info(f"-> '{abs_ref_path}'.")
 
@@ -88,7 +88,7 @@ def file_exists(origin_file_path: str, ref_file_path: str) -> bool:
 
                         starting_dir = parent_dir
     else:
-        # It is a simple relative path. Check if the file exists relative to the file in which the reference was made in.
+        # It is a simple relative path. Check if the file exists relative to the file in which the reference was made in
         ref_file_path = os.path.join(os.path.dirname(origin_file_path), ref_file_path)
         logger.info(f"Path to check: {ref_file_path}")
         if os.path.exists(ref_file_path):

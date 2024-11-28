@@ -91,7 +91,7 @@ class MarkdownParser:
         basic_images = self._drop_code_block_references(basic_images, code_blocks)
         basic_images = self._process_basic_references(file_path, basic_images)
 
-        logger.info(f"Extracting inline links ...")
+        logger.info("Extracting inline links ...")
         inline_links = self._find_matches_with_line_numbers(INLINE_LINK_PATTERN, content)
         logger.info(f"Found {len(inline_links)} inline links.")
         inline_links = self._drop_code_block_references(inline_links, code_blocks)
