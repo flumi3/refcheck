@@ -3,6 +3,7 @@ import re
 import logging
 import requests
 
+from refcheck.settings import settings
 from refcheck.parsers import Reference
 
 # Disable verify warnings for HTTPS requests
@@ -42,9 +43,16 @@ def file_exists(origin_file_path: str, ref_file_path: str) -> bool:
             logger.info("File does not exist.")
 
     elif ref_file_path.startswith("/"):
-        # This is an absolute path. We have to check if the file exists at the absolute path or as a path relative to
-        # every possible subpart of the origin file path.
+        # This is an absolute path. Some compilers (e.g. VS Code's MD compiler) allow absolute paths. If the user
+        # enables this with the flag '--allow-absolute', we have to check if
+        # 1. The file exists at the absolute path, or
+        # 2. as a path relative to every possible subpart of the origin file path. This is because the reference could
+        #   be seen as absolute reference to the current workspace.
         logger.warning("Reference is absolute.")
+
+        if not settings.allow_absolute:
+            logger.warning("Absolute references are not allowed. Use the --allow-absolute flag to allow them.")
+            return False
 
         # First, test the file with the absolute path
         logger.info("Checking if the file exists as an absolute path ...")
@@ -54,6 +62,7 @@ def file_exists(origin_file_path: str, ref_file_path: str) -> bool:
             file_exists = True
         else:
             logger.info("File does not exist as an absolute path.")
+
             # Strip the leading slash to convert the path to a relative path
             ref = ref_file_path[1:]
 
