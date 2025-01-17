@@ -62,7 +62,6 @@ def file_exists(origin_file_path: str, ref_file_path: str) -> bool:
             file_exists = True
         else:
             logger.info("File does not exist as an absolute path.")
-
             # Strip the leading slash to convert the path to a relative path
             ref = ref_file_path[1:]
 
