@@ -3,8 +3,10 @@ from refcheck.parsers import get_command_line_arguments
 
 class Settings:
     def __init__(self):
-        args = get_command_line_arguments()
-        assert args is not None
+        try:
+            args = get_command_line_arguments()
+        except AssertionError:
+            raise SystemExit(1)
 
         self._verbose = args.verbose
         self._check_remote = args.check_remote

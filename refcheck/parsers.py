@@ -208,16 +208,16 @@ def get_command_line_arguments():
     parser.add_argument(
         "-cm", "--check-remote", action="store_true", help="Check remote references (HTTP/HTTPS links)"
     )
+    parser.add_argument("-nc", "--no-color", action="store_true", help="Turn off colored output")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
     parser.add_argument(
         "--allow-absolute", action="store_true", help="Allow absolute path references like [ref](/path/to/file.md)"
     )
-    parser.add_argument("-n", "--no-color", action="store_true", help="Turn off colored output")
-    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
 
     # Check if the user has provided any files or directories
     args = parser.parse_args()
     if not args.paths:
         parser.print_help()
-        return None
+        raise AssertionError("No Markdown files or directories provided.")
 
     return args

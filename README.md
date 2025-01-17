@@ -13,8 +13,10 @@ options:
   -h, --help            show this help message and exit
   -e, --exclude [ ...]  Files or directories to exclude
   -cm, --check-remote   Check remote references (HTTP/HTTPS links)
-  -n, --no-color        Turn off colored output
+  -nc, --no-color        Turn off colored output
   -v, --verbose         Enable verbose output
+  --allow-absolute      Allow absolute path references like [ref](/path/to/file.md)
+
 ```
 
 > :memo: **Note**: RefCheck is still in its early development. If you encounter any issues or have suggestions, please
