@@ -1,9 +1,6 @@
 import os
 import pytest
 from unittest import mock
-from unittest.mock import patch
-from argparse import Namespace
-from refcheck.settings import Settings
 from refcheck.validators import file_exists
 
 
