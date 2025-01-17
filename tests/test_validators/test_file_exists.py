@@ -1,8 +1,14 @@
 import os
-from unittest import mock
 import pytest
-
+from unittest import mock
 from refcheck.validators import file_exists
+
+
+@pytest.fixture
+def mock_settings_absolute_path():
+    with mock.patch("refcheck.validators.settings") as mock_settings:
+        mock_settings.allow_absolute = True
+        yield mock_settings
 
 
 @pytest.fixture
@@ -70,21 +76,22 @@ def test_file_does_not_exist_absolute_windows_path(mock_os_path_exists):
 # === Absolute paths ===
 
 
-def test_file_exists_absolute_path(mock_os_path_exists, mock_os_path_abspath):
+def test_file_exists_absolute_path(mock_os_path_exists, mock_os_path_abspath, mock_settings_absolute_path):
+    # Mock the behavior of os.path.exists for absolute paths
     mock_os_path_exists.side_effect = lambda path: path in [
-        "/absolute/path/file.md",
+        "/absolute/path/file.md",  # Simulate that this file exists
         "/absolute/path/relative_file.md",
     ]
-    mock_os_path_abspath.return_value = "/absolute/path/file.md"
+    mock_os_path_abspath.return_value = "/absolute/path/file.md"  # Mock the absolute path of the origin file
 
-    result = file_exists("/origin/path/origin.md", "/relative_file.md")
+    result = file_exists("/origin/path/origin.md", "/absolute/path/file.md")  # Check for an absolute path
 
-    assert result is True
-    assert mock_os_path_abspath.call_count >= 1
-    assert mock_os_path_exists.call_count >= 1
+    assert result is True  # Expecting True since the file exists
+    assert mock_os_path_abspath.call_count >= 1  # Ensure abspath was called
+    assert mock_os_path_exists.call_count >= 1  # Ensure exists was called
 
 
-def test_file_does_not_exist_absolute_path(mock_os_path_exists, mock_os_path_abspath):
+def test_file_does_not_exist_absolute_path(mock_os_path_exists, mock_os_path_abspath, mock_settings_absolute_path):
     mock_os_path_exists.return_value = False
     mock_os_path_abspath.return_value = "/absolute/path/file.md"
 
@@ -95,7 +102,9 @@ def test_file_does_not_exist_absolute_path(mock_os_path_exists, mock_os_path_abs
     assert mock_os_path_exists.call_count >= 1
 
 
-def test_file_exists_absolute_path_in_subdirectory(mock_os_path_exists, mock_os_path_abspath):
+def test_file_exists_absolute_path_in_subdirectory(
+    mock_os_path_exists, mock_os_path_abspath, mock_settings_absolute_path
+):
     # Test if the function can correctly identify an absolute reference path that is actually relative to the file where
     # the reference was made in.
     #
@@ -132,7 +141,9 @@ def test_file_exists_absolute_path_in_subdirectory(mock_os_path_exists, mock_os_
     assert mock_os_path_exists.call_count >= 1
 
 
-def test_file_exists_traverse_up_directory_tree(mock_os_path_exists, mock_os_path_abspath):
+def test_file_exists_traverse_up_directory_tree(
+    mock_os_path_exists, mock_os_path_abspath, mock_settings_absolute_path
+):
     # Test if the function can correctly traverse up the directory tree to find the referenced file that is relative to
     # the root of the directories where the `origin.md` is located.
     #

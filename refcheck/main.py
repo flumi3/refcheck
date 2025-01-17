@@ -4,8 +4,9 @@ import logging
 from typing import List
 from dataclasses import dataclass
 
+from refcheck.settings import settings
 from refcheck.log_conf import setup_logging
-from refcheck.parsers import MarkdownParser, init_arg_parser, Reference
+from refcheck.parsers import MarkdownParser, Reference
 from refcheck.validators import file_exists, is_valid_markdown_reference
 from refcheck.utils import (
     get_markdown_files_from_args,
@@ -28,14 +29,14 @@ class ReferenceChecker:
         self.no_color = no_color
         self.broken_references: List[BrokenReference] = []
 
-    def check_references(self, references: list[Reference], check_remote: bool):
+    def check_references(self, references: list[Reference]):
         for ref in references:
             logger.info(f"REFERENCE: {ref.__dict__}")
 
-            if ref.is_remote and not check_remote:
+            if ref.is_remote and not settings.check_remote:
                 logger.warning("Skipping remote reference check.")
                 continue
-            elif ref.is_remote and check_remote:
+            elif ref.is_remote and settings.check_remote:
                 # Check if remote reference is reachable
                 try:
                     response = requests.head(ref.link, timeout=5, verify=False)
@@ -81,23 +82,19 @@ class ReferenceChecker:
 
 
 def main() -> bool:
-    parser = init_arg_parser()
-    args = parser.parse_args()
-
-    # Check if the user has provided any files or directories
-    if not args.paths:
-        parser.print_help()
-        return False
+    # Check if settings configuration is valid
+    if not settings.is_valid():
+        sys.exit(1)
 
     # Setup logging based on the --verbose flag
-    setup_logging(verbose=args.verbose)
+    setup_logging(verbose=settings.verbose)
 
-    check_remote: bool = args.check_remote
+    check_remote: bool = settings.check_remote
     if not check_remote:
         print("[!] WARNING: Skipping remote reference check. Enable with arg --check-remote.")
 
     # Retrieve all markdown files specified by the user
-    markdown_files = get_markdown_files_from_args(args.paths, args.exclude)
+    markdown_files = get_markdown_files_from_args(settings.paths, settings.exclude)
     if not markdown_files:
         print("[!] No Markdown files specified or found.")
         return False
@@ -106,20 +103,20 @@ def main() -> bool:
     for file in markdown_files:
         print(f"- {file}")
 
-    parser = MarkdownParser()
-    checker = ReferenceChecker(args.no_color)
+    md_parser = MarkdownParser()
+    checker = ReferenceChecker(settings.no_color)
 
     for file in markdown_files:
         print(f"\n[+] FILE: {file}")
-        references = parser.parse_markdown_file(file)
+        references = md_parser.parse_markdown_file(file)
 
         basic_refs = references["basic_references"]
         logging.info(f"Checking {len(basic_refs)} basic references ...")
-        checker.check_references(basic_refs, check_remote)
+        checker.check_references(basic_refs)
 
         image_refs = references["basic_images"]
         logging.info(f"Checking {len(image_refs)} image references ...")
-        checker.check_references(image_refs, check_remote)
+        checker.check_references(image_refs)
 
         # TODO: activate when pre-processing is implemented in parsers
         # inline_links = references["inline_links"]
