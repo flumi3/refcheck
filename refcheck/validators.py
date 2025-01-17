@@ -29,6 +29,8 @@ def file_exists(origin_file_path: str, ref_file_path: str) -> bool:
     """Check if local file exists."""
     logger.info(f"Checking if file exists: {ref_file_path}")
 
+    print(f"!!!!!!!!!  {settings}")
+
     file_exists = False
 
     if ref_file_path.startswith("\\"):

@@ -1,6 +1,7 @@
 import re
 import argparse
 import logging
+from argparse import Namespace
 from re import Pattern, Match
 from dataclasses import dataclass
 
@@ -190,11 +191,9 @@ class CustomFormatter(argparse.HelpFormatter):
             return ", ".join(parts)
 
 
-def get_command_line_arguments():
+def get_command_line_arguments() -> Namespace:
     """Setup command line argument parser."""
-    parser = argparse.ArgumentParser(
-        prog="refcheck", usage="refcheck [OPTIONS] [PATH ...]", formatter_class=CustomFormatter
-    )
+    parser = argparse.ArgumentParser(prog="refcheck", usage="refcheck [OPTIONS] [PATH ...]", formatter_class=CustomFormatter)  # type: ignore
     parser.add_argument(
         "paths",
         metavar="PATH",
@@ -202,22 +201,15 @@ def get_command_line_arguments():
         nargs="*",
         help="Markdown files or directories to check",
     )
-    parser.add_argument(
-        "-e", "--exclude", metavar="", type=str, nargs="*", default=[], help="Files or directories to exclude"
-    )
-    parser.add_argument(
-        "-cm", "--check-remote", action="store_true", help="Check remote references (HTTP/HTTPS links)"
-    )
-    parser.add_argument("-nc", "--no-color", action="store_true", help="Turn off colored output")
-    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
-    parser.add_argument(
-        "--allow-absolute", action="store_true", help="Allow absolute path references like [ref](/path/to/file.md)"
-    )
+    parser.add_argument("-e", "--exclude", metavar="", type=str, nargs="*", default=[], help="Files or directories to exclude")  # type: ignore
+    parser.add_argument("-cm", "--check-remote", action="store_true", help="Check remote references (HTTP/HTTPS links)")  # type: ignore
+    parser.add_argument("-nc", "--no-color", action="store_true", help="Turn off colored output")  # type: ignore
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")  # type: ignore
+    parser.add_argument("--allow-absolute", action="store_true", help="Allow absolute path references like [ref](/path/to/file.md)")  # type: ignore
 
     # Check if the user has provided any files or directories
     args = parser.parse_args()
     if not args.paths:
         parser.print_help()
-        raise AssertionError("No Markdown files or directories provided.")
 
     return args

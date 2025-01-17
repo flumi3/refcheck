@@ -82,6 +82,10 @@ class ReferenceChecker:
 
 
 def main() -> bool:
+    # Check if settings configuration is valid
+    if not settings.is_valid():
+        sys.exit(1)
+
     # Setup logging based on the --verbose flag
     setup_logging(verbose=settings.verbose)
 
