@@ -1,7 +1,6 @@
 # RefCheck
 
-RefCheck is a simple tool for finding broken references and links in Markdown
-files.
+RefCheck is a simple tool for finding broken references and links in Markdown files.
 
 ```text
 usage: refcheck [OPTIONS] [PATH ...]
@@ -19,8 +18,8 @@ options:
 
 ```
 
-> :memo: **Note**: RefCheck is still in its early development. If you encounter any issues or have suggestions, please
-> feel free to open an issue or pull request.
+> :construction: RefCheck is still in its early development. If you encounter any issues or have
+> suggestions, please feel free to open an issue or pull request. :construction:
 
 ## Installation
 
@@ -77,9 +76,9 @@ tests\sample_markdown.md:52: https://www.openai.com/logo.png
 
 ## Features
 
-- Find and check various reference patterns in markdown files
+- Find and check various reference patterns in Markdown files
 - Highlight broken references
 - Validate absolute and relative file paths to any file type
-- Support for checking remote references, such as \[Google\]\(https://www.google.com)
+- Support for checking remote references, such as \[Google\]\(<https://www.google.com>)
 - User friendly CLI
-- Easy CI pipeline integration
+- Easy CI pipeline integration - perfect for ensuring the quality of your Wiki
