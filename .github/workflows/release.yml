@@ -2,24 +2,27 @@ name: Release
 
 on:
   push:
-    tags:
-      - "*.*.*"
+    branches:
+      - main # Trigger when changes are pushed to main
 
 permissions:
-  contents: read
+  contents: write # Required for version bump commits and tagging
 
 jobs:
-  pypi-publish:
-    name: Upload release to PyPI
+  release:
+    name: Version, Tag & Publish
     runs-on: ubuntu-latest
     environment:
       name: pypi
       url: https://pypi.org/project/refcheck/
     permissions:
-      id-token: write
+      id-token: write # Required for PyPI publishing
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Ensure full commit history is available
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
@@ -41,8 +44,8 @@ jobs:
       - name: Install dependencies
         run: poetry install --sync --no-interaction
 
-      - name: Package project
-        run: poetry build
-
-      - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Run Python Semantic Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: poetry run semantic-release publish
