@@ -111,13 +111,13 @@ def file_exists(origin_file_path: str, ref_file_path: str) -> bool:
         return False
 
 
-def header_exists(file_path: str, header: str) -> bool:
+def _header_exists(file_path: str, header: str) -> bool:
     """Check if Markdown header exists in the given file."""
     try:
         with open(file_path, "r", encoding="utf-8") as file:
             content = file.read()
-            normalized_header = normalize_header(header)
-            normalized_headers = [normalize_header(h) for h in re.findall(r"^#{1,6}\s+(.*)", content, re.MULTILINE)]
+            normalized_header = _normalize_header(header)
+            normalized_headers = [_normalize_header(h) for h in re.findall(r"^#{1,6}\s+(.*)", content, re.MULTILINE)]
             if normalized_header in normalized_headers:
                 return True
     except FileNotFoundError:
@@ -125,9 +125,9 @@ def header_exists(file_path: str, header: str) -> bool:
     return False
 
 
-def normalize_header(header: str) -> str:
+def _normalize_header(header: str) -> str:
     """Normalize header to match Markdown link format."""
-    return re.sub(r"[^a-zA-Z0-9 -]", "", header.strip().lower().replace(" ", "-"))
+    return re.sub(r"[^a-zA-Z0-9 -]", "", header.strip().lower().replace("_", " ").replace(" ", "-"))
 
 
 def is_valid_markdown_reference(ref: Reference) -> bool:
@@ -159,7 +159,7 @@ def is_valid_markdown_reference(ref: Reference) -> bool:
             return False
 
     # Check if the referenced header exists
-    if referenced_header and not header_exists(target_path, referenced_header):
+    if referenced_header and not _header_exists(target_path, referenced_header):
         logger.error(f"Referenced header does not exist in {target_path}: {referenced_header}")
         return False
 
