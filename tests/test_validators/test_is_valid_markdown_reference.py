@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from refcheck.validators import is_valid_markdown_reference, Reference
 
 @pytest.mark.parametrize(
