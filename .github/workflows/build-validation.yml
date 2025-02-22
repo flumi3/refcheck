@@ -1,0 +1,30 @@
+name: Build Validation
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-pr-title:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install commitizen
+        run: pip install commitizen
+
+      - name: Check PR title with Commitizen
+        if: github.event_name == 'pull_request'
+        run: |
+          cz check --message "${{ github.event.pull_request.title }}" || 
+          (echo "Invalid PR title! Use Conventional Commit format (e.g., 'feat: add X')" && exit 1)
+
+  lint-and-test:
+    needs: check-pr-title
+    uses: ./.github/workflows/lint-and-test.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    with:
+      python-version: ${{ matrix.python-version }}

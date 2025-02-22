@@ -1,0 +1,35 @@
+name: CI/CD
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  lint-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+
+    uses: ./.github/workflows/lint-and-test.yml
+    with:
+      python-version: ${{ matrix.python-version }}
+
+  deploy:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          curl -sSL https://install.python-poetry.org | python - -y
+          poetry config virtualenvs.create false
+          poetry install --sync --no-interaction
+
+      - name: Publish to PyPI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: poetry run semantic-release publish
