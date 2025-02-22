@@ -22,9 +22,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+
       - name: Install dependencies
         run: |
-          curl -sSL https://install.python-poetry.org | python - -y
+          pip install poetry
           poetry config virtualenvs.create false
           poetry install --sync --no-interaction
 
