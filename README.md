@@ -18,8 +18,8 @@ options:
 
 ```
 
-> :construction: RefCheck is still in its early development. If you encounter any issues or have
-> suggestions, please feel free to open an issue or pull request. :construction:
+> :construction: RefCheck is still in its early development. If you encounter any issues or have suggestions, please
+> feel free to open an issue or pull request. :construction:
 
 ## Installation
 
@@ -82,3 +82,31 @@ tests\sample_markdown.md:52: https://www.openai.com/logo.png
 - Support for checking remote references, such as \[Google\]\(<https://www.google.com>)
 - User friendly CLI
 - Easy CI pipeline integration - perfect for ensuring the quality of your Wiki
+
+## Contributing
+
+### Getting Started
+
+1. Install Poetry
+
+   ```bash
+   pipx install poetry
+   ```
+
+2. Make Poetry install virtual environments in project root
+
+   ```bash
+   poetry config virtualenvs.in-project true
+   ```
+
+3. Install dependencies
+
+   ```bash
+   poetry install
+   ```
+
+4. Run refcheck
+
+   ```bash
+   poetry run refcheck
+   ```
