@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "refcheck"
-version = "0.0.0"  # Placeholder, real version comes from Git tags
+version = "0.1.5"
 description = "Tool for finding broken references and links in Markdown files."
 authors = ["Sebastian Flum <sebastian.flum.dev@gmail.com>"]
 readme = "README.md"
@@ -18,18 +18,15 @@ ruff = "^0.9.7"
 [tool.poetry.scripts]
 refcheck = "refcheck.main:main"
 
-[tool.commitizen]
-name = "cz_conventional_commits"
-version = "0.1.5"   # Semantic Release will update this automatically
-tag_format = "v$version"
-update_changelog_on_bump = true
-
 [tool.semantic_release]
-version_source = "tag"  # Uses Git tags instead of modifying pyproject.toml
-commit_version_number = false  # Don't commit version updates
+major_on_zero = false
 branch = "main"
-upload_to_pypi = true
-upload_to_repository = "pypi"
+upload_to_PyPI = true
+upload_to_release = true
+build_command = "pip install poetry && poetry build"
+version_toml = [
+    "pyproject.toml:tool.poetry.version"
+]
 
 [build-system]
 requires = ["poetry-core"]
