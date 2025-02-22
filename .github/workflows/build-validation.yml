@@ -13,10 +13,13 @@ jobs:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
 
     steps:
+      - name: Install commitizen
+        run: pip install commitizen
+
       - name: Check PR title with Commitizen
         if: github.event_name == 'pull_request'
         run: |
-          poetry run cz check --message "${{ github.event.pull_request.title }}" || 
+          cz check --message "${{ github.event.pull_request.title }}" || 
           (echo "Invalid PR title! Use Conventional Commit format (e.g., 'feat: add X')" && exit 1)
 
       - uses: ./.github/workflows/lint-and-test.yml
