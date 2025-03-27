@@ -41,6 +41,16 @@ class Reference:
     link: str
     is_remote: bool
 
+    def __str__(self):
+        """Return a user-friendly string representation of the Reference."""
+        remote_status = "Remote" if self.is_remote else "Local"
+        return (f"Reference:\n"
+                f"  File Path: {self.file_path}\n"
+                f"  Line Number: {self.line_number}\n"
+                f"  Syntax: {self.syntax}\n"
+                f"  Link: {self.link}\n"
+                f"  Status: {remote_status}")
+
 
 @dataclass
 class ReferenceMatch:
@@ -79,11 +89,15 @@ class MarkdownParser:
 
         # Get all references that look like this: [text](reference)
         logger.info("Extracting basic references ...")
-        basic_references = self._find_matches_with_line_numbers(BASIC_REFERENCE_PATTERN, content)
-        basic_references = [ref for ref in basic_references if not ref.match[0].startswith("!")]
-        logger.info(f"Found {len(basic_references)} basic references.")
-        basic_references = self._drop_code_block_references(basic_references, code_blocks)
-        basic_references = self._process_basic_references(file_path, basic_references)
+        basic_reference_matches = self._find_matches_with_line_numbers(BASIC_REFERENCE_PATTERN, content)
+        basic_reference_matches = [ref for ref in basic_reference_matches if not ref.match[0].startswith("!")]
+        logger.info(f"Found {len(basic_reference_matches)} basic reference matches:")
+        for ref_match in basic_reference_matches:
+            logger.info(ref_match.__repr__())
+
+        basic_reference_matches = self._drop_code_block_references(basic_reference_matches, code_blocks)
+        logger.info("Processing reference matches...")
+        basic_references = self._process_basic_references(file_path, basic_reference_matches)
 
         # Get all image references that look like this: ![text](reference)
         logger.info("Extracting basic images ...")
@@ -108,6 +122,7 @@ class MarkdownParser:
         self, references: list[ReferenceMatch], code_blocks: list[ReferenceMatch]
     ) -> list[ReferenceMatch]:
         """Drop references that are part of code blocks."""
+        dropped_counter = 0
         logger.info("Dropping references that are part of code blocks ...")
         for ref in references:
             for code_block in code_blocks:
@@ -118,6 +133,10 @@ class MarkdownParser:
                     logger.info(f"Dropping reference: {ref.match.group(0)}")
                     references.remove(ref)
                     break
+        if dropped_counter > 0:
+            logger.info(f"Dropped {dropped_counter} references.")
+        else:
+            logger.info("No code block references found.")
         return references
 
     def _is_remote_reference(self, link: str) -> bool:
@@ -139,7 +158,6 @@ class MarkdownParser:
                 link=link,
                 is_remote=self._is_remote_reference(link),
             )
-            logger.info(reference.__repr__())
             references.append(reference)
         return references
 
