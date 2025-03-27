@@ -42,27 +42,27 @@ class ReferenceChecker:
                 try:
                     response = requests.head(ref.link, timeout=5, verify=False)
                     if response.status_code < 400:
-                        status = print_green_background("OK")
+                        status = print_green("OK")
                     else:
                         logger.info(f"Status code: {response.status_code}, Reason: {response.reason}")
-                        status = print_red_background("BROKEN")
+                        status = print_red("BROKEN")
                         self.broken_references.append(BrokenReference(**ref.__dict__, status=status))
                 except requests.exceptions.RequestException as e:
                     logger.error(f"Error: Could not reach remote reference '{ref.link}': {e}")
-                    status = print_red_background("BROKEN")
+                    status = print_red("BROKEN")
                     self.broken_references.append(BrokenReference(**ref.__dict__, status=status))
             else:
                 if ".md" in ref.link or "#" in ref.link:
                     if is_valid_markdown_reference(ref):
-                        status = print_green_background("OK")
+                        status = print_green("OK")
                     else:
-                        status = print_red_background("BROKEN")
+                        status = print_red("BROKEN")
                         self.broken_references.append(BrokenReference(**ref.__dict__, status=status))
                 else:
                     if file_exists(ref.file_path, ref.link):
-                        status = print_green_background("OK")
+                        status = print_green("OK")
                     else:
-                        status = print_red_background("BROKEN")
+                        status = print_red("BROKEN")
                         self.broken_references.append(BrokenReference(**ref.__dict__, status=status))
             print(f"{ref.file_path}:{ref.line_number}: {ref.syntax} - {status}")
 
@@ -118,6 +118,9 @@ def main() -> bool:
         image_refs = references["basic_images"]
         logging.info(f"Checking {len(image_refs)} image references ...")
         checker.check_references(image_refs)
+
+        if len(basic_refs) == 0 and len(image_refs) == 0:
+            print("No references found.")
 
         # TODO: activate when pre-processing is implemented in parsers
         # inline_links = references["inline_links"]
