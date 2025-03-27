@@ -69,8 +69,6 @@ class ReferenceChecker:
     def print_summary(self):
         print("\nReference check complete.")
         print("\n============================| Summary |=============================")
-        print(print_green("[+] "))
-
 
         if self.broken_references:
             print(print_red(f"[!] {len(self.broken_references)} broken references found:"))
