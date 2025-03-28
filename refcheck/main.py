@@ -26,8 +26,7 @@ class BrokenReference(Reference):
 
 
 class ReferenceChecker:
-    def __init__(self, no_color: bool):
-        self.no_color = no_color
+    def __init__(self):
         self.broken_references: List[BrokenReference] = []
 
     def check_references(self, references: list[Reference]):
@@ -77,7 +76,10 @@ class ReferenceChecker:
             for broken_ref in self.broken_references:
                 print(f"{broken_ref.file_path}:{broken_ref.line_number}: {broken_ref.syntax}")
         else:
-            print(print_green("\U0001F389 No broken references."))
+            if settings.no_color:
+                print("No broken references!")
+            else:
+                print(print_green("\U0001F389 No broken references!"))
 
         print("====================================================================")
 
@@ -105,7 +107,7 @@ def main() -> bool:
         print(f"- {file}")
 
     md_parser = MarkdownParser()
-    checker = ReferenceChecker(settings.no_color)
+    checker = ReferenceChecker()
 
     for file in markdown_files:
         print(f"\n[+] FILE: {file}")
