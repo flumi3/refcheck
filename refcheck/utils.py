@@ -1,6 +1,8 @@
 import os
 import logging
 
+from refcheck.settings import settings
+
 logger = logging.getLogger()
 
 IGNORE_FILE = ".refcheckignore"
@@ -27,7 +29,7 @@ def load_exclusion_patterns() -> list:
         with open(IGNORE_FILE, "r", encoding="utf-8") as file:
             exclusions = [line.strip() for line in file if line.strip()]
 
-    print(f"[!] WARNING: Will skip these files and directories: {exclusions}")
+    print(print_yellow(f"[!] WARNING: Skipping these files and directories: {exclusions}"))
     return exclusions
 
 
@@ -75,17 +77,21 @@ def get_markdown_files_from_args(paths: list[str], exclude: list[str] = []) -> l
     return list(markdown_files)
 
 
-def print_green_background(text: str, no_color: bool = False) -> str:
-    return text if no_color else f"\033[42m{text}\033[0m"
+def print_green_background(text: str) -> str:
+    return text if settings.no_color else f"\033[42m{text}\033[0m"
 
 
-def print_red_background(text: str, no_color: bool = False) -> str:
-    return text if no_color else f"\033[41m{text}\033[0m"
+def print_red_background(text: str) -> str:
+    return text if settings.no_color else f"\033[41m{text}\033[0m"
 
 
-def print_red(text: str, no_color: bool = False) -> str:
-    return text if no_color else f"\033[31m{text}\033[0m"
+def print_red(text: str) -> str:
+    return text if settings.no_color else f"\033[31m{text}\033[0m"
 
 
-def print_green(text: str, no_color: bool = False) -> str:
-    return text if no_color else f"\033[32m{text}\033[0m"
+def print_green(text: str) -> str:
+    return text if settings.no_color else f"\033[32m{text}\033[0m"
+
+
+def print_yellow(text: str) -> str:
+    return text if settings.no_color else f"\033[33m{text}\033[0m"

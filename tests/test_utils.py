@@ -8,6 +8,7 @@ from refcheck.utils import (
     print_red_background,
     print_red,
     print_green,
+    print_yellow
 )
 
 
@@ -114,36 +115,67 @@ def test_get_markdown_files_from_args(paths, exclude, expected_files, expected_w
 
 # === Test print functions ===
 
+@pytest.fixture
+def mock_settings_no_color_true():
+    with patch('refcheck.utils.settings') as mock_settings:
+        mock_settings.no_color = True
+        yield mock_settings
 
-def test_print_green_background():
-    result = print_green_background("Test", no_color=False)
-    expected = "\033[42mTest\033[0m"
-    assert result == expected
+@pytest.fixture
+def mock_settings_no_color_false():
+    with patch('refcheck.utils.settings') as mock_settings:
+        mock_settings.no_color = False
+        yield mock_settings
 
+# Green background
 
-def test_print_red_background():
-    result = print_red_background("Test", no_color=False)
-    expected = "\033[41mTest\033[0m"
-    assert result == expected
+def test_print_green_background_no_color(mock_settings_no_color_true):
+    result = print_green_background("test")
+    assert result == "test"
 
+def test_print_green_background_color(mock_settings_no_color_false):
+    result = print_green_background("test")
+    assert result == "\033[42mtest\033[0m"
 
-def test_print_red():
-    result = print_red("Test", no_color=False)
-    expected = "\033[31mTest\033[0m"
-    assert result == expected
+# Red background
 
+def test_print_red_background_no_color(mock_settings_no_color_true):
+    result = print_red_background("test")
+    assert result == "test"
 
-def test_print_green():
-    result = print_green("Test", no_color=False)
-    expected = "\033[32mTest\033[0m"
-    assert result == expected
+def test_print_red_background_color(mock_settings_no_color_false):
+    result = print_red_background("test")
+    assert result == "\033[41mtest\033[0m"
 
+# Red
 
-def test_print_with_no_color():
-    assert print_green_background("Test", no_color=True) == "Test"
-    assert print_red_background("Test", no_color=True) == "Test"
-    assert print_red("Test", no_color=True) == "Test"
-    assert print_green("Test", no_color=True) == "Test"
+def test_print_red_no_color(mock_settings_no_color_true):
+    result = print_red("test")
+    assert result == "test"
+
+def test_print_red_color(mock_settings_no_color_false):
+    result = print_red("test")
+    assert result == "\033[31mtest\033[0m"
+
+# Green
+
+def test_print_green_no_color(mock_settings_no_color_true):
+    result = print_green("test")
+    assert result == "test"
+
+def test_print_green_color(mock_settings_no_color_false):
+    result = print_green("test")
+    assert result == "\033[32mtest\033[0m"
+
+# Yellow
+
+def test_print_yellow_no_color(mock_settings_no_color_true):
+    result = print_yellow("test")
+    assert result == "test"
+
+def test_print_yellow_color(mock_settings_no_color_false):
+    result = print_yellow("test")
+    assert result == "\033[33mtest\033[0m"
 
 
 if __name__ == "__main__":
