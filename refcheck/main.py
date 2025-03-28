@@ -10,8 +10,6 @@ from refcheck.parsers import MarkdownParser, Reference
 from refcheck.validators import file_exists, is_valid_markdown_reference
 from refcheck.utils import (
     get_markdown_files_from_args,
-    print_green_background,
-    print_red_background,
     print_red,
     print_green,
     print_yellow,
