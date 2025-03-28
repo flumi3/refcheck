@@ -28,20 +28,25 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v2
         with:
-          python-version: 3.12
+          python-version: "3.12"
 
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python - -y
-          poetry config virtualenvs.create false
+      - name: Create Semantic Version Release
+        id: release
+        uses: python-semantic-release/python-semantic-release@v9.21.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          git_committer_name: "github-actions"
+          git_committer_email: "actions@users.noreply.github.com"
 
-      - name: Install dependencies
-        run: poetry install --sync --no-interaction
+      - name: Upload Package to PyPI
+        uses: pypa/gh-action-pypi-publish@v1
+        if: steps.release.outputs.released == 'true'
 
-      - name: Publish to PyPI
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-        run: poetry run semantic-release publish
+      - name: Upload to GitHub Release Assets
+        uses: python-semantic-release/publish-action@v9.21.0
+        if: steps.release.outputs.released == 'true'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.release.outputs.tag }}

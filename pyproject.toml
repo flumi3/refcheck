@@ -20,9 +20,6 @@ refcheck = "refcheck.main:main"
 
 [tool.semantic_release]
 major_on_zero = false
-branch = "main"
-upload_to_PyPI = true
-upload_to_release = true
 build_command = "pip install poetry && poetry build"
 version_toml = ["pyproject.toml:tool.poetry.version"]
 version_variable = "pyproject.toml:tool.poetry.version"
