@@ -92,11 +92,11 @@ RefCheck is also available as pre-commit hook!
 
 ```yaml
 repos:
-  - repo: <https://github.com/flumi3/refcheck>
+  - repo: https://github.com/flumi3/refcheck
     rev: v0.3.0
     hooks:
       - id: refcheck
-        args: ["docs/", "-e", "docs/filetoexclude.md"]  # (optional) configure refcheck like this
+        args: ["docs/", "-e", "docs/filetoexclude.md"]  # configure refcheck like this
 ```
 
 ## Contributing
