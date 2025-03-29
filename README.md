@@ -18,8 +18,12 @@ options:
 
 ```
 
-> :construction: RefCheck is still in its early development. If you encounter any issues or have suggestions, please
-> feel free to open an issue or pull request. :construction:
+[![CI/CD](https://github.com/flumi3/refcheck/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/flumi3/refcheck/actions/workflows/ci-cd.yml)
+[![Downloads](https://static.pepy.tech/badge/refcheck)](https://pepy.tech/project/refcheck)
+![Python](https://img.shields.io/badge/python-3.9+-blue.svg)
+
+> :construction: RefCheck is still in its development. If you encounter any issues or have suggestions,
+> feel free to open an issue or pull request.
 
 ## Installation
 
@@ -45,7 +49,7 @@ README.md:6: #getting-started - OK
 Reference check complete.
 
 ============================| Summary |=============================
-🎉 No broken references.
+🎉 No broken references!
 ====================================================================
 ```
 
