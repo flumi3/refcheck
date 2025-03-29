@@ -22,7 +22,10 @@ refcheck = "refcheck.main:main"
 major_on_zero = false
 build_command = "pip install poetry && poetry build"
 version_toml = ["pyproject.toml:tool.poetry.version"]
-version_variable = "pyproject.toml:tool.poetry.version"
+version_variables = [
+    "pyproject.toml:tool.poetry.version",
+    "README.md:rev:tf"
+]
 tag_format = "v{version}"
 
 [build-system]

@@ -1,0 +1,7 @@
+- id: refcheck
+  name: RefCheck - Markdown reference checker
+  description: "Tool for finding broken references and links in Markdown files."
+  entry: refcheck
+  language: python
+  types: [markdown]
+  args: []

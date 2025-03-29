@@ -15,7 +15,6 @@ options:
   -nc, --no-color        Turn off colored output
   -v, --verbose         Enable verbose output
   --allow-absolute      Allow absolute path references like [ref](/path/to/file.md)
-
 ```
 
 [![CI/CD](https://github.com/flumi3/refcheck/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/flumi3/refcheck/actions/workflows/ci-cd.yml)
@@ -86,6 +85,19 @@ tests\sample_markdown.md:52: https://www.openai.com/logo.png
 - Support for checking remote references, such as \[Google\]\(<https://www.google.com>)
 - User friendly CLI
 - Easy CI pipeline integration - perfect for ensuring the quality of your Wiki
+
+## Pre-commit Hook
+
+RefCheck is also available as pre-commit hook!
+
+```yaml
+repos:
+  - repo: <https://github.com/flumi3/refcheck>
+    rev: v0.2.0
+    hooks:
+      - id: refcheck
+        args: ["docs/", "-e", "docs/filetoexclude.md"]  # (optional) configure refcheck like this
+```
 
 ## Contributing
 
