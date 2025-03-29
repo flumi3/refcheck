@@ -1,6 +1,32 @@
 # CHANGELOG
 
 
+## v0.3.0 (2025-03-29)
+
+### Chores
+
+- Enable manual run of workflows
+  ([`a52c18b`](https://github.com/flumi3/refcheck/commit/a52c18b49f5d479291ee5f8c3d8f1a8b1aec4669))
+
+### Continuous Integration
+
+- Add workflow template for pypi publishing
+  ([`bf6f404`](https://github.com/flumi3/refcheck/commit/bf6f4049070e96aec80b1afab320b625192d9a83))
+
+### Documentation
+
+- Add badges
+  ([`0ce4e3f`](https://github.com/flumi3/refcheck/commit/0ce4e3f6256f1228103a19cbe186044d785149db))
+
+- How to publish to pypi with poetry
+  ([`ecc1e86`](https://github.com/flumi3/refcheck/commit/ecc1e86d6211548634207be53c39c40324bf5168))
+
+### Features
+
+- Enable refcheck to be used as pre-commit hook
+  ([`39d77ad`](https://github.com/flumi3/refcheck/commit/39d77adda324e0331c6d5a241158cba1ac846ff5))
+
+
 ## v0.2.0 (2025-03-28)
 
 ### Bug Fixes
