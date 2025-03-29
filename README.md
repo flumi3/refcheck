@@ -110,3 +110,25 @@ tests\sample_markdown.md:52: https://www.openai.com/logo.png
    ```bash
    poetry run refcheck
    ```
+
+### Use Poetry for publishing to PyPI
+
+1. [Create an API token](https://pypi.org/manage/account/publishing/) for authenticating to the PyPI project.
+
+2. Configure Poetry to authenticate with PyPI:
+
+   ```bash
+   poetry config pypi-token.pypi YOUR_PYPI_API_TOKEN
+   ```
+
+3. Build the package:
+
+   ```bash
+   Poetry build
+   ```
+
+4. Publish to PyPI:
+
+   ```bash
+   Poetry publish
+   ```
