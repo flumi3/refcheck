@@ -91,12 +91,11 @@ tests\sample_markdown.md:52: https://www.openai.com/logo.png
 RefCheck is also available as pre-commit hook!
 
 ```yaml
-repos:
-  - repo: https://github.com/flumi3/refcheck
-    rev: v0.3.0
-    hooks:
-      - id: refcheck
-        args: ["docs/", "-e", "docs/filetoexclude.md"]  # configure refcheck like this
+- repo: https://github.com/flumi3/refcheck
+  rev: v0.3.0
+  hooks:
+    - id: refcheck
+      args: ["docs/", "-e", "docs/filetoexclude.md"]  # e.g. scan the docs/ folder and exclude a file
 ```
 
 ## Contributing
