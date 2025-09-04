@@ -47,7 +47,7 @@ jobs:
           git_committer_email: "actions@users.noreply.github.com"
 
       - name: Upload Package to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.12.4
+        uses: pypa/gh-action-pypi-publish@v1.13.0
         if: steps.release.outputs.released == 'true'
 
       - name: Upload to GitHub Release Assets
